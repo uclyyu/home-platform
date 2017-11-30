@@ -4,7 +4,7 @@ import numpy as np
 
 # for displaying the rendering
 import Tkinter as tk
-import ImageTk
+from PIL import ImageTk
 
 from home_platform.env import BasicEnvironment
 from home_platform.suncg import data_dir
