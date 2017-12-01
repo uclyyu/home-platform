@@ -28,53 +28,54 @@ import os
 import numpy as np
 
 from home_platform.env import BasicEnvironment
-from home_platform.core import House
 
 TEST_SUNCG_DATA_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "data", "suncg")
 
+
 class BenchmarkEnvironment(BasicEnvironment):
-    
     def __init__(self, activeEngines=['physics', 'render', 'acoustics']):
-    
+
         # NOTE: set the rendered image size here (this will greatly impact framerate!)
-        super(BenchmarkEnvironment, self).__init__(size=(120, 90))
-    
+        super(BenchmarkEnvironment, self).__init__(
+            size=(120, 90),
+            houseId="0004d52d1aeeb8ae6de39d6bd993e992",
+            suncgDatasetRoot=TEST_SUNCG_DATA_DIR
+        )
+
+        self.delta_time = 0.1
+
         self.activeEngines = activeEngines
-    
-        houseFilename = os.path.join(TEST_SUNCG_DATA_DIR, "house", "0004d52d1aeeb8ae6de39d6bd993e992", "house.json")
-        house = House.loadFromJson(houseFilename, TEST_SUNCG_DATA_DIR)
-        self.loadHouse(house)
-        
-        self.agent.setPosition((42, -39, 1))
-        self.agent.setOrientation((0.0, 0.0, -np.pi/3))
-    
+
+        self.setAgentPosition((42, -39, 1))
+        self.setAgentOrientation((0.0, 0.0, -np.pi / 3))
+
         self.linearVelocity = np.zeros(3)
         self.angularVelocity = np.zeros(3)
-        
+
         self._initialize()
-        
+
     def _initialize(self):
         # NOTE: we need to initialize all engines by running a single step, otherwise
         #       there are execution errors.
         super(BenchmarkEnvironment, self).step()
-        
+
     def step(self):
         for engine in self.activeEngines:
-            self.worlds[engine].step()
-        
+            self.worlds[engine].step(dt=self.delta_time)
+
     def simulate(self, nbSteps):
-        
-        rotationStepCounter = -1 
+
+        rotationStepCounter = -1
         rotationsStepDuration = 40
         for _ in range(nbSteps):
-        
+
             # Constant speed forward (Y-axis)
             self.linearVelocity = np.array([0.0, 1.0, 0.0])
-            collision = self.agent.isCollision()
+            collision = self.getObservation().collision
             if collision:
                 self.linearVelocity *= -1.0
-            self.agent.setLinearVelocity(self.linearVelocity)
-            
+            self.setAgentLinearVelocity(self.linearVelocity)
+
             if rotationStepCounter > rotationsStepDuration:
                 # End of rotation
                 rotationStepCounter = -1
@@ -88,13 +89,12 @@ class BenchmarkEnvironment(BasicEnvironment):
                     self.angularVelocity = np.zeros(3)
                     self.angularVelocity[2] = np.random.uniform(low=-np.pi, high=np.pi)
                     rotationStepCounter = 0
-            
+
             # Randomly change angular velocity (rotation around Z-axis)
-            self.agent.setAngularVelocity(self.angularVelocity)
-            
+            self.setAgentAngularVelocity(self.angularVelocity)
+
             # Simulate
             self.step()
-            
+
             # Grab some observations
             _ = self.getObservation()
-            

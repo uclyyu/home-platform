@@ -55,8 +55,12 @@ class Scene(object):
             count = 0
         return count
 
-    def getTotalNbObjects(self):
+    def getObjects(self):
         nodepaths = self.scene.findAllMatches('**/object*')
+        return nodepaths
+
+    def getTotalNbObjects(self):
+        nodepaths = self.getObjects()
         if nodepaths is not None:
             count = len(nodepaths)
         else:

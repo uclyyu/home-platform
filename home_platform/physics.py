@@ -319,7 +319,7 @@ class Panda3dBulletPhysics(World):
             else:
                 logger.debug('Object %s ignored from physics' % (modelId))
 
-    def step(self, dt):
+    def step(self, dt=0.1):
         self.bulletWorld.doPhysics(dt)
 
     def isCollision(self, root):

@@ -32,7 +32,7 @@ from home_platform.suncg import SunCgSceneLoader
 from home_platform.rendering import Panda3dRenderer
 from home_platform.physics import Panda3dBulletPhysics
 
-from panda3d.core import ClockObject, LVector3f, TransformState
+from panda3d.core import ClockObject, LVector3f, TransformState, LVecBase3f
 from home_platform.utils import vec3ToNumpyArray
 
 logger = logging.getLogger(__name__)
@@ -129,13 +129,13 @@ class BasicEnvironment(object):
         # Apply the local transform to the velocity
         # XXX: use BulletCharacterControllerNode class, which already handles local transform?
         rotMat = self.agentRbNp.node().getTransform().getMat().getUpper3()
-        linearVelocity = rotMat.xformVec(linearVelocity)
+        linearVelocity = rotMat.xformVec(LVecBase3f(linearVelocity[0], linearVelocity[1], linearVelocity[2]))
         linearVelocity.z = 0.0
         self.agentRbNp.node().setLinearVelocity(linearVelocity)
         self.agentRbNp.node().setActive(True, 1)
     
     def setAgentAngularVelocity(self, angularVelocity):
-        self.agentRbNp.node().setAngularVelocity(angularVelocity)
+        self.agentRbNp.node().setAngularVelocity(LVector3f(angularVelocity[0], angularVelocity[1], angularVelocity[2]))
         self.agentRbNp.node().setActive(True, 1)
         
     def applyImpulseToAgent(self, impulse):

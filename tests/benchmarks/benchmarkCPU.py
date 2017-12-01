@@ -38,8 +38,9 @@ loadPrcFile(os.path.join(os.path.dirname(os.path.realpath(__file__)), "ConfigCPU
 from benchmark import BenchmarkEnvironment
 
 def getFpsAll(nbSteps):
-    
-    env = BenchmarkEnvironment(activeEngines=['physics', 'render', 'acoustics'])
+
+    # 'acoustics' world temporarily disabled
+    env = BenchmarkEnvironment(activeEngines=['physics', 'render'])
     
     start = timer()
     env.simulate(nbSteps=nbSteps)
@@ -95,12 +96,13 @@ def getFpsAcousticsOnly(nbSteps):
 
 def main():
     
-    nbSteps = 4000
+    nbSteps = 100
     print 'FPS (all): ', getFpsAll(nbSteps)
     print 'FPS (render-only): ',  getFpsRenderOnly(nbSteps)
     print 'FPS (physics-only): ',  getFpsPhysicsOnly(nbSteps)
-    print 'FPS (acoustics-only): ',  getFpsAcousticsOnly(nbSteps)
-    
+    # print 'FPS (acoustics-only): ',  getFpsAcousticsOnly(nbSteps)
+    print 'FPS (acoustics-only): ',  "temporarily disabled"
+
     return 0
 
 if __name__ == "__main__":
