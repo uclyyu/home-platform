@@ -39,37 +39,33 @@ class Scene(object):
         self.agents = [agents.attachNewNode('agent-0'),]
         self.worlds = dict()
 
+    def getAllHouses(self):
+        return self.scene.findAllMatches('**/house*')
+
+    def getAllRooms(self):
+        return self.scene.findAllMatches('**/room*')
+
+    def getAllObjects(self):
+        return self.scene.findAllMatches('**/object*')
+
+    def getAllAgents(self):
+        return self.scene.findAllMatches('**/agents*')
+
     def getTotalNbHouses(self):
         nodepaths = self.scene.findAllMatches('**/house*')
-        if nodepaths is not None:
-            count = len(nodepaths)
-        else:
-            count = 0
-        return count
+        return len(nodepaths) if nodepaths else 0
 
     def getTotalNbRooms(self):
         nodepaths = self.scene.findAllMatches('**/room*')
-        if nodepaths is not None:
-            count = len(nodepaths)
-        else:
-            count = 0
-        return count
+        return len(nodepaths) if nodepaths else 0
 
     def getTotalNbObjects(self):
         nodepaths = self.scene.findAllMatches('**/object*')
-        if nodepaths is not None:
-            count = len(nodepaths)
-        else:
-            count = 0
-        return count
+        return len(nodepaths) if nodepaths else 0
 
     def getTotalNbAgents(self):
         nodepaths = self.scene.findAllMatches('**/agents/*')
-        if nodepaths is not None:
-            count = len(nodepaths)
-        else:
-            count = 0
-        return count
+        return len(nodepaths) if nodepaths else 0
     
     def __str__(self):
         return "Scene: %d houses, %d rooms, %d objects, %d agents" % ( self.getTotalNbHouses(),
