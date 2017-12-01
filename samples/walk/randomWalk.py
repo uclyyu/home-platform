@@ -30,10 +30,11 @@ import os
 import sys
 import logging
 import numpy as np
-from matplotlib import pyplot as plt
 
-from home_platform.core import House
+from panda3d.core import LVector3f
+
 from home_platform.env import BasicEnvironment
+from home_platform.utils import Viewer
 
 TEST_SUNCG_DATA_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "..", "tests", "data", "suncg")
 
@@ -41,22 +42,17 @@ logger = logging.getLogger(__name__)
 
 def main():
     
-    env = BasicEnvironment()
-    agent = env.agent
+    env = BasicEnvironment(houseId="0004d52d1aeeb8ae6de39d6bd993e992", suncgDatasetRoot=TEST_SUNCG_DATA_DIR, realtime=True)
+    env.setAgentOrientation((60.0, 0.0, 0.0))
+    env.setAgentPosition((42, -39, 1.0))
     
-    houseFilename = os.path.join(TEST_SUNCG_DATA_DIR, "house", "0004d52d1aeeb8ae6de39d6bd993e992", "house.json")
-    house = House.loadFromJson(houseFilename, TEST_SUNCG_DATA_DIR)
-    env.loadHouse(house)
+    env.renderWorld.showRoomLayout(showCeilings=False, showWalls=True, showFloors=True)
     
-    agent.setPosition((42, -39, 1))
-    agent.setOrientation((0.0, 0.0, -np.pi/3))
+    viewer = Viewer(env.scene, interactive=False, showPosition=True)
     
-    fig = plt.figure(figsize=(8, 8))
-    plt.axis("off")
-    plt.ion()
-    ax = plt.subplot(111)
-    im = ax.imshow(np.zeros(env.renderWorld.size))
-    fig.show()
+    # Find agent and reparent camera to it
+    agent = env.scene.scene.find('**/agents/agent*/+BulletRigidBodyNode')
+    viewer.camera.reparentTo(agent)
     
     linearVelocity = np.zeros(3)
     angularVelocity = np.zeros(3)
@@ -66,9 +62,10 @@ def main():
         while True:
             
             # Constant speed forward (Y-axis)
-            linearVelocity = np.array([0.0, 1.0, 0.0])
-            agent.setLinearVelocity(linearVelocity)
+            linearVelocity = LVector3f(0.0, 1.0, 0.0)
+            env.setAgentLinearVelocity(linearVelocity)
             
+            # Randomly change angular velocity (rotation around Z-axis)
             if rotationStepCounter > rotationsStepDuration:
                 # End of rotation
                 rotationStepCounter = -1
@@ -82,31 +79,17 @@ def main():
                     angularVelocity = np.zeros(3)
                     angularVelocity[2] = np.random.uniform(low=-np.pi, high=np.pi)
                     rotationStepCounter = 0
-            
-            # Randomly change angular velocity (rotation around Z-axis)
-            agent.setAngularVelocity(angularVelocity)
+            env.setAgentAngularVelocity(angularVelocity)
             
             # Simulate
             env.step()
             
-            # Grab some observations
-            position = agent.getPosition()
-            orientation = agent.getOrientation()
-            image = env.renderWorld.getRgbImage()
-            collision = agent.isCollision()
-            
-            if collision:
-                linearVelocity *= -1.0
-            
-            print 'Position: %s (x,y,z)' % (str(position))
-            print 'Orientation: %s (h,p,r)' % (str(orientation))
-            print 'Collision detected: %s' % (str(collision))
-            
-            im.set_data(image)
-            fig.canvas.draw()
+            viewer.step()
             
     except KeyboardInterrupt:
         pass
+
+    viewer.destroy()
 
     return 0
 
