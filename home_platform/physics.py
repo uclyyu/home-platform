@@ -293,6 +293,8 @@ class Panda3dBulletPhysics(World):
                 else:
                     model.getParent().setTag('physics-mode', 'dynamic')
                 
+                model.getParent().setTag('mass', str(node.getMass()))
+                
                 # Attach the physic-related node to the scene graph
                 physicsNp = model.getParent().attachNewNode(node)
                 physicsNp.setTransform(transform)
@@ -319,7 +321,7 @@ class Panda3dBulletPhysics(World):
             else:
                 logger.debug('Object %s ignored from physics' % (modelId))
 
-    def step(self, dt=0.1):
+    def step(self, dt):
         self.bulletWorld.doPhysics(dt)
 
     def isCollision(self, root):
