@@ -34,6 +34,7 @@ from home_platform.constants import MATERIAL_TABLE, MATERIAL_COLOR_TABLE
 from home_platform.suncg import ModelCategoryMapping, ModelInformation,\
     ObjectVoxelData
 from home_platform.rendering import getColorAttributesFromModel
+from home_platform.core import World
 
 logger = logging.getLogger(__name__)
 
@@ -182,24 +183,23 @@ class DimensionTable(object):
         
         return overallSizeTag
 
-class SuncgSemantics(object):
+class SuncgSemantics(World):
     
     # XXX: is not a complete list of movable objects, and the list is redundant with the one for physics
     movableObjectCategories = ['table', 'dressing_table', 'sofa', 'trash_can', 'chair', 'ottoman', 'bed']
     
     def __init__(self, scene, suncgDatasetRoot):
-        self.scene = scene
-        self.suncgDatasetRoot = suncgDatasetRoot
+
+        super(SuncgSemantics, self).__init__()
         
-        if suncgDatasetRoot is not None:
-            self.categoryMapping = ModelCategoryMapping(
-                os.path.join(
-                    self.suncgDatasetRoot,
-                    'metadata',
-                    'ModelCategoryMapping.csv')
-            )
-        else:
-            self.categoryMapping = None
+        self.__dict__.update(scene=scene, suncgDatasetRoot=suncgDatasetRoot)
+        
+        self.categoryMapping = ModelCategoryMapping(
+            os.path.join(
+                self.suncgDatasetRoot,
+                'metadata',
+                'ModelCategoryMapping.csv')
+        )
 
         self._initLayoutModels()
         self._initAgents()
@@ -301,3 +301,7 @@ class SuncgSemantics(object):
             desc = ""
         
         return desc
+    
+    def step(self, dt):
+        #Nothing to do yet here
+        pass

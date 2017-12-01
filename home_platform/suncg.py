@@ -359,6 +359,7 @@ class SunCgSceneLoader(object):
         
         # Create new node for house instance
         houseNp = NodePath('house-' + str(houseId))
+        houseNp.setTag('house-id', str(houseId))
         
         objectIds = {}
         for levelId, level in enumerate(data['levels']):
@@ -366,6 +367,7 @@ class SunCgSceneLoader(object):
             
             # Create new node for level instance
             levelNp = houseNp.attachNewNode('level-' + str(levelId))
+            levelNp.setTag('level-id', str(levelId))
             
             roomNpByNodeIndex = {}
             for nodeIndex, node in enumerate(level['nodes']):
@@ -377,23 +379,36 @@ class SunCgSceneLoader(object):
                     logger.debug('Loading Room %s to scene' % (modelId))
                     
                     # Create new nodes for room instance
-                    roomNp = levelNp.attachNewNode('room-' + str(modelId))
+                    instanceId = str(modelId) + '-0'
+                    roomNp = levelNp.attachNewNode('room-' + instanceId)
+                    roomNp.setTag('model-id', modelId)
+                    roomNp.setTag('instance-id', instanceId)
                     roomLayoutsNp = roomNp.attachNewNode('layouts')
                     roomObjectsNp = roomNp.attachNewNode('objects')
+                    
+                    # Include some semantic information
+                    roomTypes = node['roomTypes']
+                    roomTypes = [roomType.lower() for roomType in roomTypes]
+                    roomNp.setTag('room-types', ','.join(roomTypes))
                     
                     # Load models defined for this room 
                     for roomObjFilename in reglob(os.path.join(datasetRoot, 'room', houseId),
                                                   modelId + '[a-z].obj'):
                         
-                        # Convert extension from OBJ + MTL to EGG format
+                        # NOTE: loading the BAM format is faster and more efficient
+                        # Convert extension from OBJ + MTL to BAM format
                         f, _ = os.path.splitext(roomObjFilename)
-                        modelFilename = f + ".egg"
+                        modelFilename = f + ".bam"
                         if not os.path.exists(modelFilename):
                             raise Exception('The SUNCG dataset object models need to be convert to Panda3D EGG format!')
                         
                         # Create new node for object instance
-                        objectNp = NodePath('object-' + str(modelId) + '-0')
+                        instanceId = str(modelId) + '-0'
+                        modelId = os.path.splitext(os.path.basename(roomObjFilename))[0]
+                        objectNp = NodePath('object-' + instanceId)
                         objectNp.reparentTo(roomLayoutsNp)
+                        objectNp.setTag('model-id', modelId)
+                        objectNp.setTag('instance-id', instanceId)
                         
                         model = loadModel(modelFilename)
                         model.setName('model-' + os.path.basename(f))
@@ -415,16 +430,19 @@ class SunCgSceneLoader(object):
                         objectIds[modelId] = 0
                     
                     # Create new node for object instance
-                    objectNp = NodePath('object-' + str(modelId) + '-' + str(objectIds[modelId]))
+                    instanceId = str(modelId) + '-' + str(objectIds[modelId])
+                    objectNp = NodePath('object-' + instanceId)
+                    objectNp.setTag('model-id', modelId)
+                    objectNp.setTag('instance-id', instanceId)
                     
-                    #TODO: loading the BAM format would be much more efficient
-                    # Convert extension from OBJ + MTL to EGG format
+                    # NOTE: loading the BAM format is faster and more efficient
+                    # Convert extension from OBJ + MTL to BAM format
                     objFilename = os.path.join(datasetRoot, 'object', node['modelId'], node['modelId'] + '.obj')
                     assert os.path.exists(objFilename)
                     f, _ = os.path.splitext(objFilename)
-                    modelFilename = f + ".egg"
+                    modelFilename = f + ".bam"
                     if not os.path.exists(modelFilename):
-                        raise Exception('The SUNCG dataset object models need to be convert to Panda3D EGG format!')
+                        raise Exception('The SUNCG dataset object models need to be convert to Panda3D BAM format!')
                     
                     model = loadModel(modelFilename)
                     model.setName('model-' + os.path.basename(f))
@@ -467,31 +485,35 @@ class SunCgSceneLoader(object):
                     assert np.allclose(mat4ToNumpyArray(model.getNetTransform().getMat()),
                                        mat4ToNumpyArray(transform.getMat()), atol=1e-6)
     
-                    objectNp.setTag('model-id', str(modelId))
-                    objectNp.setTag('level-id', str(levelId))
-                    objectNp.setTag('house-id', str(houseId))
-                
                 elif node['type'] == 'Ground':
                     
                     logger.debug('Loading Ground %s to scene' % (modelId))
                     
                     # Create new nodes for ground instance
-                    groundNp = levelNp.attachNewNode('ground-' + str(modelId))
+                    instanceId = str(modelId) + '-0'
+                    groundNp = levelNp.attachNewNode('ground-' + instanceId)
+                    groundNp.setTag('instance-id', instanceId)
+                    groundNp.setTag('model-id', modelId)
                     groundLayoutsNp = groundNp.attachNewNode('layouts')
                     
                     # Load model defined for this ground
                     for groundObjFilename in reglob(os.path.join(datasetRoot, 'room', houseId),
                                                   modelId + '[a-z].obj'):
                     
-                        # Convert extension from OBJ + MTL to EGG format
+                        # NOTE: loading the BAM format is faster and more efficient
+                        # Convert extension from OBJ + MTL to BAM format
                         f, _ = os.path.splitext(groundObjFilename)
-                        modelFilename = f + ".egg"
+                        modelFilename = f + ".bam"
                         if not os.path.exists(modelFilename):
-                            raise Exception('The SUNCG dataset object models need to be convert to Panda3D EGG format!')
+                            raise Exception('The SUNCG dataset object models need to be convert to Panda3D BAM format!')
                 
-                        objectNp = NodePath('object-' + str(modelId) + '-0')
+                        instanceId = str(modelId) + '-0'
+                        modelId = os.path.splitext(os.path.basename(groundObjFilename))[0]
+                        objectNp = NodePath('object-' + instanceId)
                         objectNp.reparentTo(groundLayoutsNp)
-                
+                        objectNp.setTag('model-id', modelId)
+                        objectNp.setTag('instance-id', instanceId)
+                        
                         model = loadModel(modelFilename)
                         model.setName('model-' + os.path.basename(f))
                         model.reparentTo(objectNp)

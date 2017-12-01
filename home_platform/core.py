@@ -52,19 +52,19 @@ class Scene(object):
         return self.scene.findAllMatches('**/agents*')
 
     def getTotalNbHouses(self):
-        nodepaths = self.scene.findAllMatches('**/house*')
+        nodepaths = self.getAllHouses()
         return len(nodepaths) if nodepaths else 0
 
     def getTotalNbRooms(self):
-        nodepaths = self.scene.findAllMatches('**/room*')
+        nodepaths = self.getAllRooms()
         return len(nodepaths) if nodepaths else 0
 
     def getTotalNbObjects(self):
-        nodepaths = self.scene.findAllMatches('**/object*')
+        nodepaths = self.getAllObjects()
         return len(nodepaths) if nodepaths else 0
 
     def getTotalNbAgents(self):
-        nodepaths = self.scene.findAllMatches('**/agents/*')
+        nodepaths = self.getAllAgents()
         return len(nodepaths) if nodepaths else 0
     
     def __str__(self):

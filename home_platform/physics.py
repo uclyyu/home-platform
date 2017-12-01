@@ -293,6 +293,8 @@ class Panda3dBulletPhysics(World):
                 else:
                     model.getParent().setTag('physics-mode', 'dynamic')
                 
+                model.getParent().setTag('mass', str(node.getMass()))
+                
                 # Attach the physic-related node to the scene graph
                 physicsNp = model.getParent().attachNewNode(node)
                 physicsNp.setTransform(transform)
