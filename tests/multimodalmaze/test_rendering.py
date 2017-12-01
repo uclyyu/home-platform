@@ -32,11 +32,12 @@ import unittest
 
 import matplotlib.pyplot as plt
 
-from home_platform.rendering import Panda3dRenderer
+from home_platform.rendering import Panda3dRenderer, Panda3dSemanticsRenderer
 from home_platform.suncg import SunCgSceneLoader, loadModel, SunCgModelLights
 from panda3d.core import LMatrix4f, TransformState, LVecBase3
 from home_platform.core import Scene
 from home_platform.utils import Viewer
+from home_platform.constants import MODEL_CATEGORY_COLOR_MAPPING
 
 TEST_DATA_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "data")
 TEST_SUNCG_DATA_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "data", "suncg")
@@ -109,6 +110,42 @@ class TestPanda3dRenderer(unittest.TestCase):
         ax.imshow(image)
         ax = plt.subplot(122)
         ax.imshow(depth/np.max(depth), cmap='binary')
+        plt.show(block=False)
+        time.sleep(1.0)
+        plt.close(fig)
+        
+        renderer.destroy()
+
+class TestPanda3dSemanticsRenderer(unittest.TestCase):
+    
+    def testStep(self):
+        
+        scene = SunCgSceneLoader.loadHouseFromJson("0004d52d1aeeb8ae6de39d6bd993e992", TEST_SUNCG_DATA_DIR)
+        
+        renderer = Panda3dSemanticsRenderer(scene, TEST_SUNCG_DATA_DIR, mode='offscreen')
+        renderer.showRoomLayout(showCeilings=False)
+        
+        mat = np.array([0.999992, 0.00394238, 0, 0,
+                        -0.00295702, 0.750104, -0.661314, 0,
+                        -0.00260737, 0.661308, 0.75011, 0,
+                        43.621, -55.7499, 12.9722, 1])
+        scene.agents[0].setMat(LMatrix4f(*mat.ravel()))
+        
+        renderer.step(dt=0.1)
+        image = renderer.getRgbaImages()['agent-0']
+        
+        # Validate that all rendered colors maps to original values, up to some tolerance
+        eps = 1e-2
+        colors = np.stack(MODEL_CATEGORY_COLOR_MAPPING.values())
+        for color in image.reshape((-1,image.shape[-1])):
+            alpha = color[-1]
+            if alpha == 1.0:
+                self.assertTrue(np.min(np.sum(np.abs(colors - color[:3]), axis=1)) < eps)
+        
+        fig = plt.figure(figsize=(8,8))
+        plt.axis("off")
+        ax = plt.subplot(111)
+        ax.imshow(image)
         plt.show(block=False)
         time.sleep(1.0)
         plt.close(fig)
