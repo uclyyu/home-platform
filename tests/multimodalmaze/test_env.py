@@ -24,7 +24,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
 # POSSIBILITY OF SUCH DAMAGE.
 
-import os
+import os, sys
 import time
 import multiprocessing
 import logging
@@ -87,29 +87,33 @@ class TestBasicEnvironment(unittest.TestCase):
           
     def testMultiprocessing(self):
         # Spawn new process with independent simulations using the multiprocessing module
-            
+
+        # Not supported in OSX for now
+        if sys.platform == 'darwin':
+            return
+
         nbProcesses = 2
         nbSteps = 100
         def worker():
- 
+
             env = BasicEnvironment("0004d52d1aeeb8ae6de39d6bd993e992", suncgDatasetRoot=TEST_SUNCG_DATA_DIR, depth=False, debug=True)
-            
+
             env.agent.setPos(LVector3f(45, -42, 1))
             env.agent.setHpr(LVector3f(45.0, 0.0, 0.0))
-                 
+
             # Simulation loop
             for _ in range(nbSteps):
                 env.step()
                 _ = env.getObservation()
-                    
+
             env.destroy()
-     
+
         processes = []
         for _ in range(nbProcesses):
             p = multiprocessing.Process(target=worker)
             processes.append(p)
             p.start()
-             
+
         for p in processes:
             p.join()
         
