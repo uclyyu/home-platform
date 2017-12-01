@@ -66,6 +66,11 @@ class Scene(object):
     def getTotalNbAgents(self):
         nodepaths = self.getAllAgents()
         return len(nodepaths) if nodepaths else 0
+
+    def hasGround(self):
+        if self.scene.findAllMatches('**/ground*'):
+            return True
+        return False
     
     def __str__(self):
         return "Scene: %d houses, %d rooms, %d objects, %d agents" % ( self.getTotalNbHouses(),
