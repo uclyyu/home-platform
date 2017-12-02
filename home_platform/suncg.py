@@ -1,3 +1,4 @@
+from __future__ import print_function
 # Copyright (c) 2017, IGLU consortium
 # All rights reserved.
 # 
@@ -87,7 +88,7 @@ class ModelInformation(object):
         self._parseFromCSV(filename)
 
     def _parseFromCSV(self, filename):
-        with open(filename, 'rb') as f:
+        with open(filename, 'r') as f:
             reader = csv.reader(f, delimiter=',')
             for i, row in enumerate(reader):
                 if i == 0:
@@ -128,7 +129,7 @@ class ModelCategoryMapping(object):
         self._parseFromCSV(filename)
 
     def _parseFromCSV(self, filename):
-        with open(filename, 'rb') as f:
+        with open(filename, 'r') as f:
             reader = csv.reader(f, delimiter=',')
             for i, row in enumerate(reader):
                 if i == 0:
@@ -151,12 +152,12 @@ class ModelCategoryMapping(object):
     def _printFineGrainedClassListAsDict(self):
         for c in sorted(set(self.fine_grained_class.values())):
             name = c.replace("_", " ")
-            print "'%s':'%s'," % (c, name)
+            print("'%s':'%s'," % (c, name))
 
     def _printCoarseGrainedClassListAsDict(self):
         for c in sorted(set(self.coarse_grained_class.values())):
             name = c.replace("_", " ")
-            print "'%s':'%s'," % (c, name)
+            print("'%s':'%s'," % (c, name))
 
     def getFineGrainedCategoryForModelId(self, modelId):
         return self.fine_grained_class[ignoreVariant(modelId)]
@@ -234,7 +235,7 @@ class ObjectVoxelData(object):
                 index = endIndex
 
             # NOTE: we should by now have reach the end of the file
-            assert f.readline() == ''
+            assert len(f.readline()) == 0
 
             # FIXME: not sure about the particular dimension ordering here!
             voxels = voxels.reshape((width, height, depth))

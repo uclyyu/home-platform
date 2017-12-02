@@ -34,13 +34,12 @@ TEST_SUNCG_DATA_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), 
 
 from home_platform.core import Scene
 from home_platform.suncg import loadModel
-                
+
+
 class TestScene(unittest.TestCase):
-    
     def testInit(self):
-        
         scene = Scene()
-        
+
         # Load object to scene
         modelId = '126'
         modelFilename = os.path.join(TEST_SUNCG_DATA_DIR, "object", str(modelId), str(modelId) + ".egg")
@@ -53,8 +52,8 @@ class TestScene(unittest.TestCase):
         self.assertTrue(scene.getTotalNbRooms() == 0)
         self.assertTrue(scene.getTotalNbObjects() == 1)
 
+
 if __name__ == '__main__':
     logging.basicConfig(level=logging.WARN)
     np.seterr(all='raise')
     unittest.main()
-    

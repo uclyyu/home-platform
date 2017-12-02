@@ -1,3 +1,4 @@
+from __future__ import print_function
 # Copyright (c) 2017, IGLU consortium
 # All rights reserved.
 # 
@@ -42,6 +43,7 @@ from panda3d.core import GraphicsEngine, GraphicsPipeSelection, Loader, RescaleN
 from home_platform.core import World
 from home_platform.suncg import ModelCategoryMapping
 from home_platform.constants import MODEL_CATEGORY_COLOR_MAPPING
+from six import iteritems
 
 logger = logging.getLogger(__name__)
 
@@ -251,7 +253,7 @@ class Panda3dRenderer(World):
 
     def getRgbImages(self, channelOrder="RGB"):
         images = dict()
-        for name, tex in self.rgbTextures.iteritems():
+        for name, tex in iteritems(self.rgbTextures):
             data = tex.getRamImageAs(channelOrder)
             image = np.frombuffer(data.get_data(), np.uint8) # Must match Texture.TUnsignedByte
             image.shape = (tex.getYSize(), tex.getXSize(), 3)
@@ -265,7 +267,7 @@ class Panda3dRenderer(World):
         images = dict()
         if self.depth:
         
-            for name, tex in self.depthTextures.iteritems():
+            for name, tex in iteritems(self.depthTextures):
         
                 data = tex.getRamImage().get_data()
                 nbBytesComponentFromData = len(data) / (tex.getYSize() * tex.getXSize())
@@ -297,7 +299,7 @@ class Panda3dRenderer(World):
                 images[name] = depthImage
         else:
             
-            for name, _ in self.depthTextures.iteritems():
+            for name, _ in iteritems(self.depthTextures):
                 images[name] = np.zeros(self.size, dtype=np.float32)
         
         return images
@@ -425,10 +427,10 @@ class Panda3dSemanticsRenderer(World):
         for i, name in enumerate(catNames):
             self.catColors[name] = colors[i]
             
-            print '\'%s\': [%d, %d, %d],' % (name, 
+            print('\'%s\': [%d, %d, %d],' % (name, 
                                             int(colors[i][0]*255),
                                             int(colors[i][1]*255),
-                                            int(colors[i][2]*255))
+                                            int(colors[i][2]*255)))
 
     def _initModels(self):
         
@@ -556,7 +558,7 @@ class Panda3dSemanticsRenderer(World):
 
     def getRgbaImages(self, channelOrder="RGBA"):
         images = dict()
-        for name, tex in self.rgbTextures.iteritems():
+        for name, tex in iteritems(self.rgbTextures):
             data = tex.getRamImageAs(channelOrder)
             image = np.frombuffer(data.get_data(), np.uint8) # Must match Texture.TUnsignedByte
             image.shape = (tex.getYSize(), tex.getXSize(), 4)
@@ -734,7 +736,7 @@ def getColorAttributesFromVertexData(geom, transform=None):
     areas = []        
     rgbColors = []
     transparencies = []
-    for color, area in colorsTotalAreas.iteritems():
+    for color, area in iteritems(colorsTotalAreas):
         areas.append(area)
         rgbColors.append(list(color[:3]))
         

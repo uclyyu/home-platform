@@ -35,6 +35,7 @@ from home_platform.suncg import ModelCategoryMapping, ModelInformation,\
     ObjectVoxelData
 from home_platform.rendering import getColorAttributesFromModel
 from home_platform.core import World
+from six import iteritems
 
 logger = logging.getLogger(__name__)
 
@@ -53,7 +54,7 @@ class MaterialTable(object):
             if texture is None or not area >= thresholdRelArea: continue
 
             # Remove any digits
-            texture = texture.translate(None, digits)
+            texture = texture.translate({ord(c):'' for c in "1234567890"})
 
             # Remove trailing underscores
             texture = texture.rstrip("_")
@@ -106,7 +107,7 @@ class MaterialColorTable(object):
             # Find nearest color
             minDistance = np.Inf
             bestColorName = None
-            for colorName, refColor in table.iteritems():
+            for colorName, refColor in iteritems(table):
                 dist = np.linalg.norm(np.array(refColor) /
                                       255.0 - np.array(color), ord=2)
                 if dist < minDistance:
