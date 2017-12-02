@@ -21,6 +21,8 @@ before_script:
     - flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 script:
     # pytest --capture=sys  # add other tests here
+    - export DISPLAY=:99.0
+    - sh -e /etc/init.d/xvfb start
     - cd tests
     - ./run_tests.sh
 notifications:
