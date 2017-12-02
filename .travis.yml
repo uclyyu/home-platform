@@ -11,6 +11,8 @@ matrix:
         - python: nightly
         - python: pypy
         - python: pypy3
+env:
+  - LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 install:
     - pip install -r requirements.txt
     - pip install flake8 gym pillow six
@@ -21,11 +23,12 @@ install:
     - aclocal && autoconf && libtoolize && automake --add-missing
     - ./configure CFLAGS='-g -O0' CXXFLAGS='-g -O0'
     - make && sudo make install
-    - export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH # so that the python build is aware of Evert
-    - pushd python
+#    - pushd python # this will not work for random reasons
+    - cd python
     - sudo pip2 install .
     - sudo pip3 install .
-    - popd # change out of Python bindings dir
+    - cd -
+#    - popd # change out of Python bindings dir
     - popd # change out of Evert dir
 before_script:
     # stop the build if there are Python syntax errors or undefined names
