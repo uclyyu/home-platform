@@ -23,12 +23,11 @@ install:
     - aclocal && autoconf && libtoolize && automake --add-missing
     - ./configure CFLAGS='-g -O0' CXXFLAGS='-g -O0'
     - make && sudo make install
-#    - pushd python # this will not work for random reasons
-    - cd python
+    - pushd python # this will not work for random reasons
+    - swig -python -c++ -I../include -o evert_wrap.cpp evert.i
     - sudo pip2 install .
     - sudo pip3 install .
-    - cd -
-#    - popd # change out of Python bindings dir
+    - popd # change out of Python bindings dir
     - popd # change out of Evert dir
 before_script:
     # stop the build if there are Python syntax errors or undefined names
