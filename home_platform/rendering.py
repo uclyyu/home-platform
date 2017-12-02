@@ -26,7 +26,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY 
 # OF SUCH DAMAGE.
 
-import os
+import os, sys
 import logging
 import numpy as np
 import scipy.ndimage
@@ -50,6 +50,10 @@ MODEL_DATA_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..",
 class Panda3dRenderer(World):
 
     def __init__(self, scene, size=(512,512), shadowing=False, mode='offscreen', zNear=0.1, zFar=1000.0, fov=40.0, depth=True, modelLightsInfo=None, cameraTransform=None):
+
+        # Off-screen buffers are not supported in OSX
+        if sys.platform == 'darwin':
+            mode = 'onscreen'
 
         super(Panda3dRenderer, self).__init__()
         
