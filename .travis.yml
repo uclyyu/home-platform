@@ -25,8 +25,8 @@ install:
     - make && sudo make install
     - pushd python # this will not work for random reasons
     - swig -python -c++ -I../include -o evert_wrap.cpp evert.i
-    - sudo pip2 install .
-    - sudo pip3 install .
+    - sudo pip2 install -e .
+    - sudo pip3 install -e .
     - popd # change out of Python bindings dir
     - popd # change out of Evert dir
 before_script:
