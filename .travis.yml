@@ -21,6 +21,7 @@ install:
     - aclocal && autoconf && libtoolize && automake --add-missing
     - ./configure CFLAGS='-g -O0' CXXFLAGS='-g -O0'
     - make && sudo make install
+    - export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH # so that the python build is aware of Evert
     - pushd python
     - sudo pip2 install .
     - sudo pip3 install .
