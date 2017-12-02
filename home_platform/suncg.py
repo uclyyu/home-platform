@@ -235,7 +235,7 @@ class ObjectVoxelData(object):
                 index = endIndex
 
             # NOTE: we should by now have reach the end of the file
-            assert f.readline() == ''
+            assert len(f.readline()) == 0
 
             # FIXME: not sure about the particular dimension ordering here!
             voxels = voxels.reshape((width, height, depth))

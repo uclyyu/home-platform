@@ -39,52 +39,52 @@ from panda3d.core import LVector3f
 TEST_DATA_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "data")
 TEST_SUNCG_DATA_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "data", "suncg")
 
+
 class TestBasicEnvironment(unittest.TestCase):
-     
     def testRender(self):
-     
+
         env = BasicEnvironment("0004d52d1aeeb8ae6de39d6bd993e992", suncgDatasetRoot=TEST_SUNCG_DATA_DIR, depth=True)
-     
+
         env.agent.setPos(LVector3f(42, -39, 1))
         env.agent.setHpr(LVector3f(60.0, 0.0, 0.0))
-     
+
         env.step()
-         
+
         image = env.renderWorld.getRgbImages()['agent-0']
         depth = env.renderWorld.getDepthImages(mode='distance')['agent-0']
-         
-        fig = plt.figure(figsize=(16,8))
+
+        fig = plt.figure(figsize=(16, 8))
         plt.axis("off")
         ax = plt.subplot(121)
         ax.imshow(image)
         ax = plt.subplot(122)
-        ax.imshow(depth/np.max(depth), cmap='binary')
+        ax.imshow(depth / np.max(depth), cmap='binary')
         plt.show(block=False)
         time.sleep(1.0)
         plt.close(fig)
-         
+
         env.destroy()
-     
+
     def testGenerateSpawnPositions(self):
-          
+
         env = BasicEnvironment("0004d52d1aeeb8ae6de39d6bd993e992", suncgDatasetRoot=TEST_SUNCG_DATA_DIR, depth=False)
-          
+
         occupancyMap, occupancyMapCoord, positions = env.generateSpawnPositions(n=10)
-          
-        xmin, ymin = np.min(occupancyMapCoord, axis=(0,1))
-        xmax, ymax = np.max(occupancyMapCoord, axis=(0,1))
-          
+
+        xmin, ymin = np.min(occupancyMapCoord, axis=(0, 1))
+        xmax, ymax = np.max(occupancyMapCoord, axis=(0, 1))
+
         fig = plt.figure()
         plt.axis("on")
         ax = plt.subplot(111)
-        ax.imshow(occupancyMap, cmap='gray', extent=[xmin,xmax,ymin,ymax])
-        ax.scatter(positions[:,0], positions[:,1], s=40, c=[1.0,0.0,0.0])
+        ax.imshow(occupancyMap, cmap='gray', extent=[xmin, xmax, ymin, ymax])
+        ax.scatter(positions[:, 0], positions[:, 1], s=40, c=[1.0, 0.0, 0.0])
         plt.show(block=False)
         time.sleep(1.0)
         plt.close(fig)
-          
+
         env.destroy()
-          
+
     def testMultiprocessing(self):
         # Spawn new process with independent simulations using the multiprocessing module
 
@@ -94,9 +94,11 @@ class TestBasicEnvironment(unittest.TestCase):
 
         nbProcesses = 2
         nbSteps = 100
+
         def worker():
 
-            env = BasicEnvironment("0004d52d1aeeb8ae6de39d6bd993e992", suncgDatasetRoot=TEST_SUNCG_DATA_DIR, depth=False, debug=True)
+            env = BasicEnvironment("0004d52d1aeeb8ae6de39d6bd993e992", suncgDatasetRoot=TEST_SUNCG_DATA_DIR,
+                                   depth=False, debug=True)
 
             env.agent.setPos(LVector3f(45, -42, 1))
             env.agent.setHpr(LVector3f(45.0, 0.0, 0.0))
@@ -116,9 +118,9 @@ class TestBasicEnvironment(unittest.TestCase):
 
         for p in processes:
             p.join()
-        
+
+
 if __name__ == '__main__':
     logging.basicConfig(level=logging.WARN)
     np.seterr(all='raise')
     unittest.main()
-    
