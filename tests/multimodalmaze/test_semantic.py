@@ -87,6 +87,7 @@ class TestMaterialColorTable(unittest.TestCase):
 
         colorDescriptions = MaterialColorTable.getColorsFromObject(obj, mode='advanced', thresholdRelArea=0.0)
         self.assertTrue(len(colorDescriptions) == 2)
+        print ("DBG:", colorDescriptions[0])
         self.assertTrue(colorDescriptions[0] == "navajo white")
         self.assertTrue(colorDescriptions[1] == "dark slate gray")
 
@@ -99,6 +100,7 @@ class TestMaterialColorTable(unittest.TestCase):
         model.reparentTo(obj)
         colorDescriptions = MaterialColorTable.getColorsFromObject(obj, mode='advanced')
         self.assertTrue(len(colorDescriptions) == 2)
+        print ("DBG:", colorDescriptions[0])
         self.assertTrue(colorDescriptions[0] == "dark gray")
         self.assertTrue(colorDescriptions[1] == "cadet blue")
 

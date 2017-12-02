@@ -88,7 +88,7 @@ class ModelInformation(object):
         self._parseFromCSV(filename)
 
     def _parseFromCSV(self, filename):
-        with open(filename, 'rb') as f:
+        with open(filename, 'r') as f:
             reader = csv.reader(f, delimiter=',')
             for i, row in enumerate(reader):
                 if i == 0:
@@ -129,7 +129,7 @@ class ModelCategoryMapping(object):
         self._parseFromCSV(filename)
 
     def _parseFromCSV(self, filename):
-        with open(filename, 'rb') as f:
+        with open(filename, 'r') as f:
             reader = csv.reader(f, delimiter=',')
             for i, row in enumerate(reader):
                 if i == 0:

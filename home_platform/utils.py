@@ -89,7 +89,7 @@ class Controller(StaticShowBase):
         self.time = 0
         self.centX = self.win.getProperties().getXSize() / 2
         self.centY = self.win.getProperties().getYSize() / 2
-        self.win.movePointer(0, self.centX, self.centY)
+        self.win.movePointer(0, int(self.centX), int(self.centY))
 
         # key controls
         self.forward = False
@@ -171,7 +171,7 @@ class Controller(StaticShowBase):
         x = md.getX()
         y = md.getY()
 
-        if self.win.movePointer(0, self.centX, self.centY):
+        if self.win.movePointer(0, int(self.centX), int(self.centY)):
             self.agent.setH(self.agent, self.agent.getH(self.agent) - (x - self.centX) * self.sensX)
             self.agent.setP(self.agent, self.agent.getP(self.agent) - (y - self.centY) * self.sensY)
             self.agent.setR(0.0)
@@ -276,7 +276,7 @@ class Viewer(StaticShowBase):
         self.cam.setR(0)
 
         # reset mouse to start position:
-        self.win.movePointer(0, self.centX, self.centY)
+        self.win.movePointer(0, int(self.centX), int(self.centY))
 
         # Reparent the scene to render.
         self.scene.scene.reparentTo(self.render)
@@ -358,7 +358,7 @@ class Viewer(StaticShowBase):
             x = md.getX()
             y = md.getY()
 
-            if self.win.movePointer(0, self.centX, self.centY):
+            if self.win.movePointer(0, int(self.centX), int(self.centY)):
                 self.cam.setH(self.cam, self.cam.getH(self.cam)
                               - (x - self.centX) * self.sensX)
                 self.cam.setP(self.cam, self.cam.getP(self.cam)
