@@ -16,7 +16,7 @@ install:
     - pip install flake8 gym pillow six
     - git clone https://github.com/sbrodeur/evert
     - pushd evert # change into Evert dir for compilation
-    - sudo apt-get install libgl-dev mesa-common-dev libglu1-mesa-dev freeglut3-dev mesa-common-dev libgl1-mesa-dev
+    - sudo apt-get install mesa-common-dev libglu1-mesa-dev freeglut3-dev mesa-common-dev libgl1-mesa-dev
     - aclocal && autoconf && libtoolize && automake --add-missing
     - ./configure CFLAGS='-g -O0' CXXFLAGS='-g -O0'
     - make && sudo make install
