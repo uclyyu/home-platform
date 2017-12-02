@@ -19,7 +19,8 @@ setup(
         "scipy",
         "matplotlib",
         "panda3d",
-        "nltk"
+        "nltk",
+        "PySoundFile"
     ],
     long_description_markdown_filename='README.md',
     classifiers=[
