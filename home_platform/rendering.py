@@ -276,7 +276,7 @@ class Panda3dRenderer(World):
                 elif nbBytesComponentFromData == 2:
                     # NOTE: This can happen on some graphic hardware, where unsigned 16-bit data is stored
                     #       despite setting the texture component type to 32-bit floating point.
-                    depthImage = np.frombuffer(data, np.uint16).astype()
+                    depthImage = np.frombuffer(data, np.uint16)
                     depthImage = depthImage.astype(np.float32) / 65535
                     
                 depthImage.shape = (tex.getYSize(), tex.getXSize())

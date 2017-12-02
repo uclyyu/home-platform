@@ -26,7 +26,12 @@
 
 import sys
 import numpy as np
-import builtins
+
+if (sys.version_info > (3, 0)):
+    import builtins
+else:
+    import __builtin__ as  builtins
+
 
 from panda3d.core import ClockObject, AmbientLight, VBase4, PointLight, AntialiasAttrib, TextNode, LVector3f
 

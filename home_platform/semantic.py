@@ -36,6 +36,7 @@ from home_platform.suncg import ModelCategoryMapping, ModelInformation,\
 from home_platform.rendering import getColorAttributesFromModel
 from home_platform.core import World
 from six import iteritems
+import sys
 
 logger = logging.getLogger(__name__)
 
@@ -54,7 +55,10 @@ class MaterialTable(object):
             if texture is None or not area >= thresholdRelArea: continue
 
             # Remove any digits
-            texture = texture.translate({ord(c):'' for c in "1234567890"})
+            if (sys.version_info > (3, 0)):
+                texture = texture.translate({ord(c):'' for c in "1234567890"})
+            else:
+                texture = texture.translate(None, digits)
 
             # Remove trailing underscores
             texture = texture.rstrip("_")
