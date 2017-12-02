@@ -1,3 +1,4 @@
+from __future__ import print_function
 # Copyright (c) 2017, IGLU consortium
 # All rights reserved.
 # 
@@ -48,7 +49,7 @@ class Test(unittest.TestCase):
     
         for _ in range(20):
             action = env.action_space.sample()
-            print ("action:", action)
+            print(("action:", action))
     
             obs, rew, done, misc = env.step(action)
             env.render("human")
