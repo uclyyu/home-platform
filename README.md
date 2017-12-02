@@ -1,4 +1,4 @@
-# HoME Platform
+# HoME Platform [![Build Status](https://travis-ci.org/HoME-Platform/home-platform.svg?branch=master)](https://travis-ci.org/HoME-Platform/home-platform)
 
 HoME is a platform for artificial agents to learn from vision, audio, semantics, physics, and interaction with objects and
 other agents, all within a realistic context.

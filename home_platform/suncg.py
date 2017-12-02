@@ -1,3 +1,4 @@
+from __future__ import print_function
 # Copyright (c) 2017, IGLU consortium
 # All rights reserved.
 # 
@@ -151,12 +152,12 @@ class ModelCategoryMapping(object):
     def _printFineGrainedClassListAsDict(self):
         for c in sorted(set(self.fine_grained_class.values())):
             name = c.replace("_", " ")
-            print "'%s':'%s'," % (c, name)
+            print("'%s':'%s'," % (c, name))
 
     def _printCoarseGrainedClassListAsDict(self):
         for c in sorted(set(self.coarse_grained_class.values())):
             name = c.replace("_", " ")
-            print "'%s':'%s'," % (c, name)
+            print("'%s':'%s'," % (c, name))
 
     def getFineGrainedCategoryForModelId(self, modelId):
         return self.fine_grained_class[ignoreVariant(modelId)]

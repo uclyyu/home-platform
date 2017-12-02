@@ -1,3 +1,4 @@
+from __future__ import print_function
 # Copyright (c) 2017, IGLU consortium
 # All rights reserved.
 # 
@@ -97,11 +98,11 @@ def getFpsAcousticsOnly(nbSteps):
 def main():
     
     nbSteps = 100
-    print 'FPS (all): ', getFpsAll(nbSteps)
-    print 'FPS (render-only): ',  getFpsRenderOnly(nbSteps)
-    print 'FPS (physics-only): ',  getFpsPhysicsOnly(nbSteps)
+    print('FPS (all): ', getFpsAll(nbSteps))
+    print('FPS (render-only): ',  getFpsRenderOnly(nbSteps))
+    print('FPS (physics-only): ',  getFpsPhysicsOnly(nbSteps))
     # print 'FPS (acoustics-only): ',  getFpsAcousticsOnly(nbSteps)
-    print 'FPS (acoustics-only): ',  "temporarily disabled"
+    print('FPS (acoustics-only): ',  "temporarily disabled")
 
     return 0
 

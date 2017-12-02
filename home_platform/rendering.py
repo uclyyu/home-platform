@@ -1,3 +1,4 @@
+from __future__ import print_function
 # Copyright (c) 2017, IGLU consortium
 # All rights reserved.
 # 
@@ -421,10 +422,10 @@ class Panda3dSemanticsRenderer(World):
         for i, name in enumerate(catNames):
             self.catColors[name] = colors[i]
             
-            print '\'%s\': [%d, %d, %d],' % (name, 
+            print('\'%s\': [%d, %d, %d],' % (name, 
                                             int(colors[i][0]*255),
                                             int(colors[i][1]*255),
-                                            int(colors[i][2]*255))
+                                            int(colors[i][2]*255)))
 
     def _initModels(self):
         
