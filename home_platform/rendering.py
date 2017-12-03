@@ -270,7 +270,7 @@ class Panda3dRenderer(World):
                 image = np.fromstring(data_img, dtype=np.uint8)
 
             else:
-                image = np.frombuffer(buffer(data.get_data()), np.uint8)  # Must match Texture.TUnsignedByte
+                image = np.frombuffer(memoryview(data.get_data()), np.uint8)  # Must match Texture.TUnsignedByte
             image.shape = (tex.getYSize(), tex.getXSize(), 3)
             image = np.flipud(image)
             images[name] = image
@@ -594,7 +594,7 @@ class Panda3dSemanticsRenderer(World):
                     data_img = data.get_data()
                 image = np.fromstring(data_img, dtype=np.uint8)
             else:
-                image = np.frombuffer(buffer(data.get_data()), np.uint8)  # Must match Texture.TUnsignedByte
+                image = np.frombuffer(memoryview(data.get_data()), np.uint8)  # Must match Texture.TUnsignedByte
             image.shape = (tex.getYSize(), tex.getXSize(), 4)
             image = np.flipud(image)
             images[name] = image
