@@ -570,6 +570,7 @@ class Panda3dSemanticsRenderer(World):
             data = tex.getRamImageAs(channelOrder)
             if (sys.version_info > (3, 0)):
                 image = np.fromstring(data.get_data(), dtype=np.uint8)
+                print ("DBG:",len(data.get_data()))
             else:
                 image = np.frombuffer(buffer(data.get_data()), np.uint8)  # Must match Texture.TUnsignedByte
             image.shape = (tex.getYSize(), tex.getXSize(), 4)
