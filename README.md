@@ -11,6 +11,7 @@ Check out the paper on Arxiv for more details: [HoME: a Household Multimodal Env
 
 Main requirements:
 - Python 2.7+ with Numpy, Scipy and Matplotlib
+- (or Python 3.5+ but currently WIP, might have bugs)
 - [Panda3d](https://www.panda3d.org/) game engine for 3D rendering
 - [EVERT](https://github.com/sbrodeur/evert) engine for 3D acoustic ray-tracing
 - [PySoundFile](https://github.com/bastibe/PySoundFile) for Ogg Vorbis decoding
@@ -28,9 +29,12 @@ https://github.com/sbrodeur/evert
 
 ## SUNCG Dataset
 
-The Home environment is based on the [SUNCG](http://suncg.cs.princeton.edu/) dataset. To use the complete dataset of
-45,000 houses, please follow the instruction mentioned on the SUNCG website.
+The Home environment is based on the [SUNCG](http://suncg.cs.princeton.edu/) dataset. 
 
+**Important!** Before you can use this library, you need to obtain the SUNCG dataset.
+In order to do so, please follow the instructions on their website.
+
+For the test suit we included a single small house as sample in this repository.
 
 ## Installing the library
 
@@ -55,3 +59,99 @@ cd $HOME/work/home-platform/tests
 ./run_tests.sh
 ```
 Note that this can take some time.
+
+
+## Usage
+
+**Before you start please read steps 0 and 1 so that you know what to expect. 
+The data installation and preparation can take some time (because it's a big dataset).**
+
+#### 0 Obtain and install the SUNCG dataset (only once)
+
+The dataset can be acquired by contacting the authors at their website: http://suncg.cs.princeton.edu/
+
+Currently the dataset downloaded consists of a single zip file, which in turn contains multiple zip files
+(one for each directory in [house, object, object_vox, room, texture]).
+
+Please unzip all files so that as a result you have the folloging directory structure somewhere on your PC:
+```
+/some/path/doesnt/matter/SUNCG/
+/some/path/doesnt/matter/SUNCG/house/
+/some/path/doesnt/matter/SUNCG/house/0004d52d1aeeb8ae6de39d6bd993e992/
+/some/path/doesnt/matter/SUNCG/house/0004dd3cb11e50530676f77b55262d38/
+...
+/some/path/doesnt/matter/SUNCG/object/100/
+/some/path/doesnt/matter/SUNCG/object/101/
+...
+``` 
+
+The unzipped files take up approx 28.1GB disk space on an NTFS-formatted drive.
+
+**Warning** Unzipping may take considerable time and should not be done on a network drive
+due to the overhead in network communication. We advise to extract everything on a local machine 
+and if necessary copy it to networked machines via `rsync` like so:
+
+    rsync -avh --info=progress2 --remove-source-files /some/path/doesnt/matter/SUNCG /cluster/datasets/
+    
+Once everything is unzipped, you can remove the original zip files.
+
+As final step please "install" the dataset by (a) symlinking it into your home directory
+
+    ln -s /some/path/doesnt/matter/SUNCG/ ~/.suncg 
+
+**or** by (b) setting the environmental variable to the right path:
+
+    export SUNCG_DATA_DIR="/cluster/datasets/SUNCG"
+    
+If you do both of these things, the environmental variable takes precedent.
+
+#### 1 Convert the houses into a usable format (only once)
+
+In order for Panda3D to be able to read the 3D files of the houses, you need
+to first convert them to a different format (from OBJ/Wavefront to EGG and BAM).
+
+To do so, just cd into the scripts folder in this repository and run the conversion script:
+
+    # assuming you currently are in the directory of this readme file:
+    cd scripts
+    
+    # if you installed the dataset via symlink:
+    ./convert_suncg.sh ~/.suncg/ # the trailing slash is important
+    
+    # if you installed the dataset via environmental vairable:
+    ./convert_suncg.sh $SUNCG_DATA_DIR/ # the trailing slash might be important
+    
+Now sit back, have a tea, a dinner, maybe a little holiday somewhere warm - this will take a while.
+
+#### 2 Loading a house
+
+TODO 
+
+(In the meantime please have a look at our tests in the `tests` directory.
+There we cover pretty much all aspects of the library.)
+
+#### 3 Rendering a house
+
+TODO 
+
+(In the meantime please have a look at our tests in the `tests` directory.
+There we cover pretty much all aspects of the library.)
+
+#### 4 Adding physics to a house
+
+TODO 
+
+(... you get the idea.)
+
+#### 5 Adding acoustics to a hosue
+
+TODO 
+
+(... you get the idea.)
+
+#### 6 Getting started with reinforcement learning (RL)
+
+TODO 
+
+(... you get the idea.)
+
