@@ -47,6 +47,7 @@ from panda3d.core import NodePath, LVector3f, LVecBase3, Material, TransformStat
 from direct.showbase.Audio3DManager import Audio3DManager
 from direct.task.TaskManagerGlobal import taskMgr
 from direct.task.Task import Task
+from six import itervalues
 
 logger = logging.getLogger(__name__)
 
@@ -1003,7 +1004,7 @@ class EvertAcoustics(World):
         self.nbUsedRays = 0
         
         # Draw each solution with a different color
-        for i, (solution, _, _) in enumerate(self.solutions.itervalues()):
+        for i, (solution, _, _) in enumerate(itervalues(self.solutions)):
             
             # Rotate amongst colors of the predefined table
             color = self.rayColors[i%len(self.rayColors)]
@@ -1382,7 +1383,7 @@ class EvertAcoustics(World):
         
         # Update each solution related to all pairs of source and listeners
         impulses = []
-        for solution, srcName, lstName, in self.solutions.itervalues():
+        for solution, srcName, lstName, in itervalues(self.solutions):
             solution.update()
             impulse = self._calculateImpulseResponse(solution, srcName, lstName)
             impulses.append(impulse)

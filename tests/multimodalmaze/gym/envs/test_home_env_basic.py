@@ -54,6 +54,8 @@ class Test(unittest.TestCase):
             obs, rew, done, misc = env.step(action)
             env.render("human")
 
+        env.close()
+
 if __name__ == '__main__':
     logging.basicConfig(level=logging.WARN)
     np.seterr(all='raise')

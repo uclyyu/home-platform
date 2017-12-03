@@ -198,3 +198,7 @@ class HomeEnv(gym.Env):
                 self._create_window()
 
             self._update_human_render()
+
+    def _close(self):
+        if self.render_window is not None:
+            self.render_window.destroy()
