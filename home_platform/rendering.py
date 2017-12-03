@@ -267,10 +267,7 @@ class Panda3dRenderer(World):
                     tex.makeRamImage()
                     data = tex.getRamImageAs(channelOrder)
                     data_img = data.get_data()
-                image = np.fromstring(data_img, dtype=np.uint8)
-
-            else:
-                image = np.frombuffer(buffer(data.get_data()), np.uint8)  # Must match Texture.TUnsignedByte
+            image = np.fromstring(memoryview(data_img), dtype=np.uint8)  # Must match Texture.TUnsignedByte
             image.shape = (tex.getYSize(), tex.getXSize(), 3)
             image = np.flipud(image)
             images[name] = image
@@ -287,15 +284,11 @@ class Panda3dRenderer(World):
                 data = tex.getRamImage().get_data()
                 nbBytesComponentFromData = len(data) / (tex.getYSize() * tex.getXSize())
                 if nbBytesComponentFromData == 4:
-                    if (sys.version_info > (3, 0)):
-                        depthImage = np.fromstring(data, dtype=np.float32)  # Must match Texture.TFloat
-                    else:
-                        depthImage = np.frombuffer(data, np.float32)  # Must match Texture.TFloat
-
+                    depthImage = np.fromstring(memoryview(data), dtype=np.float32)  # Must match Texture.TFloat
                 elif nbBytesComponentFromData == 2:
                     # NOTE: This can happen on some graphic hardware, where unsigned 16-bit data is stored
                     #       despite setting the texture component type to 32-bit floating point.
-                    depthImage = np.frombuffer(data, np.uint16)
+                    depthImage = np.fromstring(memoryview(data), np.uint16)
                     depthImage = depthImage.astype(np.float32) / 65535
 
                 depthImage.shape = (tex.getYSize(), tex.getXSize())
@@ -592,9 +585,7 @@ class Panda3dSemanticsRenderer(World):
                     tex.makeRamImage()
                     data = tex.getRamImageAs(channelOrder)
                     data_img = data.get_data()
-                image = np.fromstring(data_img, dtype=np.uint8)
-            else:
-                image = np.frombuffer(buffer(data.get_data()), np.uint8)  # Must match Texture.TUnsignedByte
+            image = np.fromstring(memoryview(data_img), dtype=np.uint8)  # Must match Texture.TUnsignedByte
             image.shape = (tex.getYSize(), tex.getXSize(), 4)
             image = np.flipud(image)
             images[name] = image
