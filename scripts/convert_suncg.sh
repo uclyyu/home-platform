@@ -7,6 +7,8 @@ IFS=$'\n';
 
 # Recursively loop through all OBJ files in the specified directory
 OBJ_DIRECTORY=$1
+has_err=0
+echo "Finding all objects to convert... (may take a moment)"
 for obj in $(find ${OBJ_DIRECTORY} -name '*.obj'); do
 	echo "Processing OBJ file ${obj}"
 
@@ -26,14 +28,19 @@ for obj in $(find ${OBJ_DIRECTORY} -name '*.obj'); do
 	python ${DIR}/obj2egg.py --coordinate-system=y-up-right ${INPUT_OBJ_FILE}
 	if ! [ -f $OUTPUT_EGG_FILE ]; then
 		echo "Could not find output file ${OUTPUT_EGG_FILE}. An error probably occured during conversion."
-		exit 1
-	fi
-
-	egg2bam -ps rel -o ${OUTPUT_BAM_FILE} ${OUTPUT_EGG_FILE}
-	if ! [ -f $OUTPUT_BAM_FILE ]; then
-		echo "Could not find output file ${OUTPUT_BAM_FILE}. An error probably occured during conversion."
-		exit 1
-	fi
+		has_err=1
+	else
+        egg2bam -ps rel -o ${OUTPUT_BAM_FILE} ${OUTPUT_EGG_FILE}
+        if ! [ -f $OUTPUT_BAM_FILE ]; then
+            echo "Could not find output file ${OUTPUT_BAM_FILE}. An error probably occured during conversion."
+            has_err=1
+        fi
+    fi
 done
 
 echo 'All done.'
+
+if [[ has_err -eq 1 ]]; then
+    echo 'IMPORTANT! There were some errors. This happens sometimes. Please run this again.'
+    #TODO: actually count errors and display here the number of errors
+fi
