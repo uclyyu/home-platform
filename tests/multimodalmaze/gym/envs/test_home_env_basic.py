@@ -34,7 +34,7 @@ import gym
 # NOTE: use the test SUNCG data directory
 TEST_DATA_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "..", "..", "data")
 TEST_SUNCG_DATA_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "..", "..", "data", "suncg")
-os.environ['SUNCG_DATA_DIR'] = TEST_SUNCG_DATA_DIR
+# os.environ['SUNCG_DATA_DIR'] = TEST_SUNCG_DATA_DIR
 
 class Test(unittest.TestCase):
 

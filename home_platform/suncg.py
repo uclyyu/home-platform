@@ -78,6 +78,11 @@ def data_dir():
 
     return path
 
+def get_available_houses():
+    path = data_dir()
+    print ("DBG: SUNCG path:",path)
+    houses = os.listdir(os.path.join(path, "house"))
+    return sorted(houses)
 
 class ModelInformation(object):
     header = 'id,front,nmaterials,minPoint,maxPoint,aligned.dims,index,variantIds'

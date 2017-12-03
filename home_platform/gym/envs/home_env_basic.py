@@ -15,7 +15,7 @@ except ImportError:
 from PIL import ImageTk
 
 from home_platform.env import BasicEnvironment, Observation
-from home_platform.suncg import data_dir
+from home_platform.suncg import data_dir, get_available_houses
 
 
 class HomeEnv(gym.Env):
@@ -70,12 +70,8 @@ class HomeEnv(gym.Env):
             "collision": spaces.Discrete(2)
         })
 
-        # TODO get actual list of available houses from data dir
-        # (or precompute CSV)
-        # list must be sorted
-
-        # self.list_of_houses = get_house_list(DATA_DIR)
-        self.list_of_houses = ["0004d52d1aeeb8ae6de39d6bd993e992"]
+        print("DEBUG: LOADING HOUSES... ")
+        self.list_of_houses = get_available_houses()
         print("DEBUG: FOUND HOUSES: ", len(self.list_of_houses))
 
         # for determinism we have to load
