@@ -258,7 +258,17 @@ class Panda3dRenderer(World):
         for name, tex in iteritems(self.rgbTextures):
             data = tex.getRamImageAs(channelOrder)
             if (sys.version_info > (3, 0)):
-                image = np.fromstring(data.get_data(), dtype=np.uint8)
+                if not tex.mightHaveRamImage():
+                    tex.makeRamImage()
+                    data = tex.getRamImageAs(channelOrder)
+                try:
+                    data_img = data.get_data()
+                except UnicodeDecodeError as _:
+                    tex.makeRamImage()
+                    data = tex.getRamImageAs(channelOrder)
+                    data_img = data.get_data()
+                image = np.fromstring(data_img, dtype=np.uint8)
+
             else:
                 image = np.frombuffer(buffer(data.get_data()), np.uint8)  # Must match Texture.TUnsignedByte
             image.shape = (tex.getYSize(), tex.getXSize(), 3)
@@ -273,11 +283,15 @@ class Panda3dRenderer(World):
         if self.depth:
 
             for name, tex in iteritems(self.depthTextures):
-
+                tex.makeRamImage()
                 data = tex.getRamImage().get_data()
                 nbBytesComponentFromData = len(data) / (tex.getYSize() * tex.getXSize())
                 if nbBytesComponentFromData == 4:
-                    depthImage = np.frombuffer(data, np.float32)  # Must match Texture.TFloat
+                    if (sys.version_info > (3, 0)):
+                        depthImage = np.fromstring(data, dtype=np.float32)  # Must match Texture.TFloat
+                    else:
+                        depthImage = np.frombuffer(data, np.float32)  # Must match Texture.TFloat
+
                 elif nbBytesComponentFromData == 2:
                     # NOTE: This can happen on some graphic hardware, where unsigned 16-bit data is stored
                     #       despite setting the texture component type to 32-bit floating point.
@@ -569,8 +583,16 @@ class Panda3dSemanticsRenderer(World):
         for name, tex in iteritems(self.rgbTextures):
             data = tex.getRamImageAs(channelOrder)
             if (sys.version_info > (3, 0)):
-                image = np.fromstring(data.get_data(), dtype=np.uint8)
-                print ("DBG:",len(data.get_data()))
+                if not tex.mightHaveRamImage():
+                    tex.makeRamImage()
+                    data = tex.getRamImageAs(channelOrder)
+                try:
+                    data_img = data.get_data()
+                except UnicodeDecodeError as _:
+                    tex.makeRamImage()
+                    data = tex.getRamImageAs(channelOrder)
+                    data_img = data.get_data()
+                image = np.fromstring(data_img, dtype=np.uint8)
             else:
                 image = np.frombuffer(buffer(data.get_data()), np.uint8)  # Must match Texture.TUnsignedByte
             image.shape = (tex.getYSize(), tex.getXSize(), 4)
