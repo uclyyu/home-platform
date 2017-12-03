@@ -4,10 +4,17 @@ from gym import spaces
 import numpy as np
 
 # for displaying the rendering
-import Tkinter as tk
+try:
+    # for Python2
+    import Tkinter as tk
+except ImportError:
+    # for Python3
+    import tkinter as tk
+
+
 from PIL import ImageTk
 
-from home_platform.env import BasicEnvironment
+from home_platform.env import BasicEnvironment, Observation
 from home_platform.suncg import data_dir
 
 
@@ -35,6 +42,8 @@ class HomeEnv(gym.Env):
     def __init__(self, turning_speed=0.1, moving_speed=100):
         self.turning_speed = turning_speed  # how fast is the camera turning
         self.moving_speed = moving_speed  # how fast is the agent moving
+        # empty init for tests
+        self.observation = Observation(None, None, np.zeros((100,100,3), dtype=np.uint8), None).as_dict()
 
         self.metadata = {'render.modes': ['human', 'rgb_array']}
 
