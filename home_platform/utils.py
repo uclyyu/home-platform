@@ -33,7 +33,8 @@ else:
     import __builtin__ as  builtins
 
 
-from panda3d.core import ClockObject, AmbientLight, VBase4, PointLight, AntialiasAttrib, TextNode, LVector3f
+from panda3d.core import ClockObject, AmbientLight, VBase4, PointLight, AntialiasAttrib, TextNode, LVector3f,\
+    BitMask32
 
 from direct.showbase.ShowBase import ShowBase as ShowBase_, WindowProperties
 from direct.gui.OnscreenText import OnscreenText
@@ -236,13 +237,16 @@ class Controller(StaticShowBase):
 
 class Viewer(StaticShowBase):
     def __init__(self, scene, size=(800, 600), zNear=0.1, zFar=1000.0, fov=40.0, shadowing=False, interactive=True,
-                 showPosition=False):
+                 showPosition=False, cameraMask=None):
 
         super(Viewer, self).__init__()
 
         self.__dict__.update(scene=scene, size=size, fov=fov, shadowing=shadowing,
-                             zNear=zNear, zFar=zFar, interactive=interactive, showPosition=showPosition)
+                             zNear=zNear, zFar=zFar, interactive=interactive, showPosition=showPosition,
+                             cameraMask=cameraMask)
 
+        if cameraMask is not None:
+            self.cam.node().setCameraMask(self.cameraMask)
         lens = self.cam.node().getLens()
         lens.setFov(self.fov)
         lens.setNear(self.zNear)

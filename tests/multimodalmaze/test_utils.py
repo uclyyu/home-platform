@@ -34,7 +34,7 @@ from home_platform.env import BasicEnvironment
 TEST_DATA_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "data")
 TEST_SUNCG_DATA_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "data", "suncg")
 
-from panda3d.core import LMatrix4f, LMatrix4, LVector3
+from panda3d.core import LMatrix4f, LMatrix4, LVector3, BitMask32
 
 from home_platform.suncg import SunCgSceneLoader
 from home_platform.utils import Viewer, mat4ToNumpyArray, vec3ToNumpyArray, \
@@ -49,7 +49,7 @@ class TestViewer(unittest.TestCase):
 
             # NOTE: show initial models loaded into the scene
             for model in scene.scene.findAllMatches('**/+ModelNode'):
-                model.show()
+                model.show(BitMask32.allOn())
 
             viewer = Viewer(scene, shadowing=True)
 

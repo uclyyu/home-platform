@@ -33,7 +33,8 @@ import logging
 import numpy as np
 
 from panda3d.core import NodePath, Loader, LoaderOptions, Filename, TransformState,\
-    LMatrix4f, Spotlight, LVector3f, PointLight, PerspectiveLens, CS_zup_right, CS_yup_right
+    LMatrix4f, Spotlight, LVector3f, PointLight, PerspectiveLens, CS_zup_right, CS_yup_right,\
+    BitMask32
 
 from home_platform.constants import MODEL_CATEGORY_MAPPING
 from home_platform.core import Scene
@@ -419,7 +420,7 @@ class SunCgSceneLoader(object):
                         model = loadModel(modelFilename)
                         model.setName('model-' + os.path.basename(f))
                         model.reparentTo(objectNp)
-                        model.hide()
+                        model.hide(BitMask32.allOn())
                     
                     if 'nodeIndices' in node:
                         for childNodeIndex in node['nodeIndices']:
@@ -453,7 +454,7 @@ class SunCgSceneLoader(object):
                     model = loadModel(modelFilename)
                     model.setName('model-' + os.path.basename(f))
                     model.reparentTo(objectNp)
-                    model.hide()
+                    model.hide(BitMask32.allOn())
                     
                     # 4x4 column-major transformation matrix from object coordinates to scene coordinates
                     transform = np.array(node['transform']).reshape((4,4))
@@ -523,7 +524,7 @@ class SunCgSceneLoader(object):
                         model = loadModel(modelFilename)
                         model.setName('model-' + os.path.basename(f))
                         model.reparentTo(objectNp)
-                        model.hide()
+                        model.hide(BitMask32.allOn())
                 
                 else:
                     raise Exception('Unsupported node type: %s' % (node['type']))

@@ -30,7 +30,7 @@ import logging
 import numpy as np
 import unittest
 from home_platform.core import Scene
-from panda3d.core import TransformState, LVector3f
+from panda3d.core import TransformState, LVector3f, BitMask16, BitMask32
 from home_platform.utils import Viewer
 
 TEST_DATA_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "data")
@@ -102,7 +102,7 @@ class TestSunCgModelLights(unittest.TestCase):
         assert os.path.exists(modelFilename)
         model = loadModel(modelFilename)
         model.setName('model-' + str(modelId))
-        model.show()
+        model.show(BitMask32.allOn())
 
         objectsNp = scene.scene.attachNewNode('objects')
         objNp = objectsNp.attachNewNode('object-' + str(modelId))

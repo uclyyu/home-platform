@@ -34,7 +34,7 @@ import matplotlib.pyplot as plt
 
 from home_platform.rendering import Panda3dRenderer, Panda3dSemanticsRenderer
 from home_platform.suncg import SunCgSceneLoader, loadModel, SunCgModelLights
-from panda3d.core import LMatrix4f, TransformState, LVecBase3
+from panda3d.core import LMatrix4f, TransformState, LVecBase3, BitMask32
 from home_platform.core import Scene
 from home_platform.utils import Viewer
 from home_platform.constants import MODEL_CATEGORY_COLOR_MAPPING
@@ -53,7 +53,7 @@ class TestPanda3dRenderer(unittest.TestCase):
         assert os.path.exists(modelFilename)
         model = loadModel(modelFilename)
         model.setName('model-' + str(modelId))
-        model.hide()
+        model.show(BitMask32.allOn())
 
         objectsNp = scene.scene.attachNewNode('objects')
         objNp = objectsNp.attachNewNode('object-' + str(modelId))

@@ -64,7 +64,7 @@ class Panda3dRenderer(World):
                              depth=depth, shadowing=shadowing, modelLightsInfo=modelLightsInfo,
                              cameraTransform=cameraTransform)
 
-        self.cameraMask = BitMask32.bit(1)
+        self.cameraMask = BitMask32.bit(0)
         self.graphicsEngine = GraphicsEngine.getGlobalPtr()
         self.loader = Loader.getGlobalPtr()
         self.graphicsEngine.setDefaultLoader(self.loader)
@@ -108,11 +108,10 @@ class Panda3dRenderer(World):
             objectNp = model.getParent()
             rendererNp = objectNp.attachNewNode('render')
             model = model.copyTo(rendererNp)
-            model.show()
 
             # Set the model to be visible only to this camera
-            model.node().adjustDrawMask(self.cameraMask, self.cameraMask, self.cameraMask)
-            model.show()
+            model.hide(BitMask32.allOn())
+            model.show(self.cameraMask)
 
             # Reparent render node below the existing physic node (if any)
             physicsNp = objectNp.find('**/physics')
@@ -233,21 +232,21 @@ class Panda3dRenderer(World):
 
         for np in self.scene.scene.findAllMatches('**/layouts/**/render/*c'):
             if showCeilings:
-                np.show()
+                np.show(self.cameraMask)
             else:
-                np.hide()
+                np.hide(BitMask32.allOn())
 
         for np in self.scene.scene.findAllMatches('**/layouts/**/render/*w'):
             if showWalls:
-                np.show()
+                np.show(self.cameraMask)
             else:
-                np.hide()
+                np.hide(BitMask32.allOn())
 
         for np in self.scene.scene.findAllMatches('**/layouts/**/render/*f'):
             if showFloors:
-                np.show()
+                np.show(self.cameraMask)
             else:
-                np.hide()
+                np.hide(BitMask32.allOn())
 
     def destroy(self):
         self.graphicsEngine.removeAllWindows()
@@ -283,7 +282,7 @@ class Panda3dRenderer(World):
         if self.depth:
 
             for name, tex in iteritems(self.depthTextures):
-                tex.makeRamImage()
+                #tex.makeRamImage()
                 data = tex.getRamImage().get_data()
                 nbBytesComponentFromData = len(data) / (tex.getYSize() * tex.getXSize())
                 if nbBytesComponentFromData == 4:
@@ -402,7 +401,7 @@ class Panda3dSemanticsRenderer(World):
                 'ModelCategoryMapping.csv')
         )
 
-        self.cameraMask = BitMask32.bit(4)
+        self.cameraMask = BitMask32.bit(1)
         self.graphicsEngine = GraphicsEngine.getGlobalPtr()
         self.loader = Loader.getGlobalPtr()
         self.graphicsEngine.setDefaultLoader(self.loader)
@@ -472,8 +471,8 @@ class Panda3dSemanticsRenderer(World):
             model = model.copyTo(rendererNp)
 
             # Set the model to be visible only to this camera
-            model.node().adjustDrawMask(self.cameraMask, self.cameraMask, self.cameraMask)
-            model.show()
+            model.hide(BitMask32.allOn())
+            model.show(self.cameraMask)
 
             # Get semantic-related color of model
             modelId = model.getNetTag('model-id')
@@ -562,22 +561,22 @@ class Panda3dSemanticsRenderer(World):
 
         for np in self.scene.scene.findAllMatches('**/layouts/**/render-semantics/*c'):
             if showCeilings:
-                np.show()
+                np.show(self.cameraMask)
             else:
-                np.hide()
-
+                np.hide(BitMask32.allOn())
+    
         for np in self.scene.scene.findAllMatches('**/layouts/**/render-semantics/*w'):
             if showWalls:
-                np.show()
+                np.show(self.cameraMask)
             else:
-                np.hide()
-
+                np.hide(BitMask32.allOn())
+            
         for np in self.scene.scene.findAllMatches('**/layouts/**/render-semantics/*f'):
             if showFloors:
-                np.show()
+                np.show(self.cameraMask)
             else:
-                np.hide()
-
+                np.hide(BitMask32.allOn())
+        
     def destroy(self):
         self.graphicsEngine.removeAllWindows()
         del self.pipe
