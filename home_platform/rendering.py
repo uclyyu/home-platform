@@ -255,6 +255,8 @@ class Panda3dRenderer(World):
     def getRgbImages(self, channelOrder="RGB"):
         images = dict()
         for name, tex in iteritems(self.rgbTextures):
+            # XXX: not sure about calling makeRamImage() before getting the image data, since it returns an empty image
+            #      and overwrite any previously rendered image. We may just call it once when we create the texture.
             data = tex.getRamImageAs(channelOrder)
             if not tex.mightHaveRamImage():
                 tex.makeRamImage()
@@ -282,7 +284,10 @@ class Panda3dRenderer(World):
         if self.depth:
 
             for name, tex in iteritems(self.depthTextures):
-                #tex.makeRamImage()
+                # XXX: not sure about calling makeRamImage() before getting the image data, since it returns an empty image
+                #      and overwrite any previously rendered image. We may just call it once when we create the texture.
+                if not tex.mightHaveRamImage():
+                    tex.makeRamImage()
                 data = tex.getRamImage().get_data()
                 nbBytesComponentFromData = len(data) / (tex.getYSize() * tex.getXSize())
                 if nbBytesComponentFromData == 4:
@@ -584,6 +589,8 @@ class Panda3dSemanticsRenderer(World):
     def getRgbaImages(self, channelOrder="RGBA"):
         images = dict()
         for name, tex in iteritems(self.rgbTextures):
+            # XXX: not sure about calling makeRamImage() before getting the image data, since it returns an empty image
+            #      and overwrite any previously rendered image. We may just call it once when we create the texture.
             data = tex.getRamImageAs(channelOrder)
             if not tex.mightHaveRamImage():
                 tex.makeRamImage()
