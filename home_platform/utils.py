@@ -32,11 +32,9 @@ if (sys.version_info > (3, 0)):
 else:
     import __builtin__ as  builtins
 
+from panda3d.core import ClockObject, AmbientLight, VBase4, PointLight, AntialiasAttrib, TextNode, LVector3f
 
-from panda3d.core import ClockObject, AmbientLight, VBase4, PointLight, AntialiasAttrib, TextNode, LVector3f,\
-    BitMask32
-
-from direct.showbase.ShowBase import ShowBase as ShowBase_, WindowProperties
+from direct.showbase.ShowBase import ShowBase, WindowProperties
 from direct.gui.OnscreenText import OnscreenText
 
 
@@ -50,24 +48,12 @@ def mat4ToNumpyArray(mat):
 def vec3ToNumpyArray(vec):
     return np.array([vec.x, vec.y, vec.z])
 
-
-# this is a dirty fix for Panda3D not inheriting from object
-class StaticShowBase(object):
-    instance = None
-
-    def __init__(self):
-        if not StaticShowBase.instance:
-            StaticShowBase.instance = ShowBase_()
-
-    def __getattr__(self, name):
-        return getattr(self.instance, name)
-
-
-class Controller(StaticShowBase):
+class Controller(ShowBase):
     def __init__(self, scene, size=(800, 600), zNear=0.1, zFar=1000.0, fov=40.0, shadowing=False, showPosition=False,
-                 cameraTransform=None):
+                 cameraTransform=None, cameraMask=None):
 
-        super(Controller, self).__init__()
+        ShowBase.__init__(self)
+        
         self.__dict__.update(scene=scene, size=size, fov=fov,
                              zNear=zNear, zFar=zFar, shadowing=shadowing, showPosition=showPosition,
                              cameraTransform=cameraTransform)
@@ -78,6 +64,8 @@ class Controller(StaticShowBase):
         if self.cameraTransform is not None:
             self.camera.setTransform(cameraTransform)
 
+        if cameraMask is not None:
+            self.cam.node().setCameraMask(self.cameraMask)
         lens = self.cam.node().getLens()
         lens.setFov(self.fov)
         lens.setNear(self.zNear)
@@ -231,15 +219,16 @@ class Controller(StaticShowBase):
 
     def destroy(self):
         self.taskMgr.remove('controller-update')
+        ShowBase.destroy(self)
         # this should only be destroyed by the Python garbage collector
         # StaticShowBase.instance.destroy()
 
 
-class Viewer(StaticShowBase):
+class Viewer(ShowBase):
     def __init__(self, scene, size=(800, 600), zNear=0.1, zFar=1000.0, fov=40.0, shadowing=False, interactive=True,
                  showPosition=False, cameraMask=None):
 
-        super(Viewer, self).__init__()
+        ShowBase.__init__(self)
 
         self.__dict__.update(scene=scene, size=size, fov=fov, shadowing=shadowing,
                              zNear=zNear, zFar=zFar, interactive=interactive, showPosition=showPosition,
@@ -422,5 +411,6 @@ class Viewer(StaticShowBase):
 
     def destroy(self):
         self.taskMgr.remove('viewer-update')
+        ShowBase.destroy(self)
         # this should only be destroyed by the Python garbage collector
         # StaticShowBase.instance.destroy()

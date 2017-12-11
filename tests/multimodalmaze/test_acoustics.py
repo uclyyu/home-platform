@@ -31,7 +31,9 @@ import logging
 import numpy as np
 import unittest
 import matplotlib.pyplot as plt
-from panda3d.core import TransformState, LVecBase3f, LMatrix4f
+
+from panda3d.core import TransformState, LVecBase3f, LMatrix4f, BitMask32, AudioSound
+
 from home_platform.suncg import SunCgSceneLoader, loadModel
 from home_platform.core import Scene
 from home_platform.utils import Viewer
@@ -40,7 +42,10 @@ TEST_DATA_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", 
 TEST_SUNCG_DATA_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "data", "suncg")
 
 from home_platform.acoustics import EvertAcoustics, CipicHRTF, FilterBank, \
-    MaterialAbsorptionTable, AirAttenuationTable
+    MaterialAbsorptionTable, AirAttenuationTable, EvertAudioSound, AudioPlayer,\
+    interauralPolarToVerticalPolarCoordinates,\
+    verticalPolarToInterauralPolarCoordinates,\
+    verticalPolarToCipicCoordinates
 
 
 class TestMaterialAbsorptionTable(unittest.TestCase):
@@ -72,16 +77,35 @@ class TestCipicHRTF(unittest.TestCase):
     def testInit(self):
         hrtf = CipicHRTF(filename=os.path.join(TEST_DATA_DIR, 'hrtf', 'cipic_hrir.mat'),
                          samplingRate=44100.0)
-        impulse = hrtf.getImpulseResponse(azimut=50.0, elevation=75.0)
         self.assertTrue(np.array_equal(hrtf.impulses.shape, [25, 50, 2, 200]))
-        self.assertTrue(np.array_equal(impulse.shape, [2, 200]))
 
         hrtf = CipicHRTF(filename=os.path.join(TEST_DATA_DIR, 'hrtf', 'cipic_hrir.mat'),
                          samplingRate=16000.0)
-        impulse = hrtf.getImpulseResponse(azimut=50.0, elevation=75.0)
         self.assertTrue(np.array_equal(hrtf.impulses.shape, [25, 50, 2, 72]))
-        self.assertTrue(np.array_equal(impulse.shape, [2, 72]))
 
+    def testGetImpulseResponse(self):
+
+        hrtf = CipicHRTF(filename=os.path.join(TEST_DATA_DIR, 'hrtf', 'cipic_hrir.mat'),
+                         samplingRate=44100.0)
+
+        for elevation, azimut in [(0.0, 0.0), (0.0, -90.0), (0.0, 90.0), (-120.0, 0.0)]:
+    
+            impulse = hrtf.getImpulseResponse(azimut, elevation)
+            self.assertTrue(np.array_equal(impulse.shape, [2, 200]))
+            
+            fig = plt.figure()
+            plt.title('azimut = %f, elevation = %f' % (azimut, elevation))
+            plt.plot(impulse[0], color='b', label='Left channel')
+            plt.plot(impulse[1], color='g', label='Right channel')
+            plt.legend()
+            plt.show(block=False)
+            time.sleep(1.0)
+            plt.close(fig)
+
+    def testResample(self):
+        hrtf = CipicHRTF(filename=os.path.join(TEST_DATA_DIR, 'hrtf', 'cipic_hrir.mat'),
+                         samplingRate=44100.0)
+        hrtf.resample(newSamplingRate=16000.0)
 
 class TestFilterBank(unittest.TestCase):
     def testInit(self):
@@ -144,7 +168,7 @@ class TestEvertAcoustics(unittest.TestCase):
         scene = SunCgSceneLoader.loadHouseFromJson("0004d52d1aeeb8ae6de39d6bd993e992", TEST_SUNCG_DATA_DIR)
         hrtf = CipicHRTF(os.path.join(TEST_DATA_DIR, 'hrtf', 'cipic_hrir.mat'), samplingRate)
 
-        engine = EvertAcoustics(scene, hrtf, samplingRate, maximumOrder=3, debug=True)
+        engine = EvertAcoustics(scene, hrtf, samplingRate, maximumOrder=2, debug=True)
         engine.destroy()
 
     def testRenderSimpleCubeRoom(self):
@@ -153,8 +177,7 @@ class TestEvertAcoustics(unittest.TestCase):
         scene = Scene()
         hrtf = CipicHRTF(os.path.join(TEST_DATA_DIR, 'hrtf', 'cipic_hrir.mat'), samplingRate)
 
-        viewer = Viewer(scene)
-        viewer.disableMouse()
+        viewer = Viewer(scene, interactive=False)
 
         # Define a simple cube (10 x 10 x 10 m) as room geometry
         roomSize = 10.0
@@ -169,8 +192,6 @@ class TestEvertAcoustics(unittest.TestCase):
         model.setRenderModeWireframe()
         model.reparentTo(objectNp)
         objectNp.setPos(LVecBase3f(0.0, 0.0, 0.0))
-
-        agentNp = scene.agents[0]
 
         # Define a sound source
         sourceSize = 0.25
@@ -187,7 +208,13 @@ class TestEvertAcoustics(unittest.TestCase):
 
         acoustics = EvertAcoustics(scene, hrtf, samplingRate, maximumOrder=3, materialAbsorption=False,
                                    frequencyDependent=False, debug=True)
-        acoustics.updateGeometry()
+        
+        # Attach sound to object
+        filename = os.path.join(TEST_DATA_DIR, 'audio', 'toilet.ogg')
+        sound = EvertAudioSound(filename)
+        acoustics.attachSoundToObject(sound, objectNp)
+        
+        acoustics.step(0.1)
         center = acoustics.world.getCenter()
         self.assertTrue(np.allclose(acoustics.world.getMaxLength() / 1000.0, roomSize))
         self.assertTrue(np.allclose([center.x, center.y, center.z], [0.0, 0.0, 0.0]))
@@ -203,6 +230,7 @@ class TestEvertAcoustics(unittest.TestCase):
         mat = LMatrix4f(*mat.ravel())
         viewer.cam.setMat(mat)
 
+        agentNp = scene.agents[0]
         agentNp.setPos(LVecBase3f(0.25 * roomSize, -0.25 * roomSize, 0.3 * roomSize))
         for _ in range(10):
             viewer.step()
@@ -219,8 +247,8 @@ class TestEvertAcoustics(unittest.TestCase):
         time.sleep(1.0)
 
         # Calculate and show impulse responses
-        impulse = acoustics.calculateImpulseResponses()[0]
-
+        impulse = acoustics.calculateImpulseResponse(objectNp.getName(), agentNp.getName())
+ 
         fig = plt.figure()
         plt.plot(impulse.impulse[0], color='b', label='Left channel')
         plt.plot(impulse.impulse[1], color='g', label='Right channel')
@@ -234,20 +262,21 @@ class TestEvertAcoustics(unittest.TestCase):
         viewer.graphicsEngine.removeAllWindows()
 
     def testRenderHouse(self):
-
+ 
         scene = SunCgSceneLoader.loadHouseFromJson("0004d52d1aeeb8ae6de39d6bd993e992", TEST_SUNCG_DATA_DIR)
-
+ 
         samplingRate = 16000.0
         hrtf = CipicHRTF(os.path.join(TEST_DATA_DIR, 'hrtf', 'cipic_hrir.mat'), samplingRate)
-        acoustics = EvertAcoustics(scene, hrtf, samplingRate, maximumOrder=3, debug=True)
-
+        acoustics = EvertAcoustics(scene, hrtf, samplingRate, maximumOrder=2, debug=True)
+ 
+        acoustics.step(0.0)
+ 
         # Hide ceilings
         for nodePath in scene.scene.findAllMatches('**/layouts/*/acoustics/*c'):
-            nodePath.hide()
-
-        viewer = Viewer(scene)
-        viewer.disableMouse()
-
+            nodePath.hide(BitMask32.allOn())
+ 
+        viewer = Viewer(scene, interactive=False)
+ 
         # Configure the camera
         # NOTE: in Panda3D, the X axis points to the right, the Y axis is forward, and Z is up
         mat = np.array([0.999992, 0.00394238, 0, 0,
@@ -256,12 +285,12 @@ class TestEvertAcoustics(unittest.TestCase):
                         43.621, -55.7499, 12.9722, 1])
         mat = LMatrix4f(*mat.ravel())
         viewer.cam.setMat(mat)
-
+ 
         for _ in range(20):
             acoustics.step(dt=0.1)
             viewer.step()
         time.sleep(1.0)
-
+ 
         acoustics.destroy()
         viewer.destroy()
         viewer.graphicsEngine.removeAllWindows()
@@ -279,24 +308,31 @@ class TestEvertAcoustics(unittest.TestCase):
         modelId = 'source-0'
         modelFilename = os.path.join(TEST_DATA_DIR, 'models', 'sphere.egg')
         objectsNp = scene.scene.attachNewNode('objects')
+        objectsNp.setTag('acoustics-mode', 'source')
         objectNp = objectsNp.attachNewNode('object-' + modelId)
-        objectNp.setTag('acoustics-mode', 'source')
         model = loadModel(modelFilename)
         model.setName('model-' + modelId)
         model.setTransform(TransformState.makeScale(sourceSize))
         model.reparentTo(objectNp)
         objectNp.setPos(LVecBase3f(39, -40.5, 1.5))
-
+        
         samplingRate = 16000.0
         hrtf = CipicHRTF(os.path.join(TEST_DATA_DIR, 'hrtf', 'cipic_hrir.mat'), samplingRate)
         acoustics = EvertAcoustics(scene, hrtf, samplingRate, maximumOrder=2, debug=True)
 
+        # Attach sound to object
+        filename = os.path.join(TEST_DATA_DIR, 'audio', 'toilet.ogg')
+        sound = EvertAudioSound(filename)
+        acoustics.attachSoundToObject(sound, objectNp)
+        sound.play()
+
+        acoustics.step(0.0)
+
         # Hide ceilings
         for nodePath in scene.scene.findAllMatches('**/layouts/*/acoustics/*c'):
-            nodePath.hide()
+            nodePath.hide(BitMask32.allOn())
 
-        viewer = Viewer(scene)
-        viewer.disableMouse()
+        viewer = Viewer(scene, interactive=False)
 
         # Configure the camera
         # NOTE: in Panda3D, the X axis points to the right, the Y axis is forward, and Z is up
@@ -308,7 +344,7 @@ class TestEvertAcoustics(unittest.TestCase):
         mat = LMatrix4f(*mat.ravel())
         viewer.cam.setMat(mat)
 
-        for _ in range(10):
+        for _ in range(20):
             viewer.step()
         time.sleep(1.0)
 
@@ -316,8 +352,8 @@ class TestEvertAcoustics(unittest.TestCase):
         viewer.graphicsEngine.removeAllWindows()
 
         # Calculate and show impulse responses
-        impulse = acoustics.calculateImpulseResponses()[0]
-
+        impulse = acoustics.calculateImpulseResponse(objectNp.getName(), agentNp.getName())
+ 
         fig = plt.figure()
         plt.plot(impulse.impulse[0], color='b', label='Left channel')
         plt.plot(impulse.impulse[1], color='g', label='Right channel')
@@ -325,11 +361,315 @@ class TestEvertAcoustics(unittest.TestCase):
         plt.show(block=False)
         time.sleep(1.0)
         plt.close(fig)
-
+        
         acoustics.destroy()
 
+    def testAttachSoundToObject(self):
+        
+        samplingRate = 16000.0
+        scene = SunCgSceneLoader.loadHouseFromJson("0004d52d1aeeb8ae6de39d6bd993e992", TEST_SUNCG_DATA_DIR)
+        acoustics = EvertAcoustics(scene, samplingRate=samplingRate, maximumOrder=2)
+        
+        filename = os.path.join(TEST_DATA_DIR, 'audio', 'toilet.ogg')
+        sound = EvertAudioSound(filename)
+        
+        objNode = scene.scene.find('**/object-83*')
+        acoustics.attachSoundToObject(sound, objNode)
+        
+    def testStep(self):
+        
+        scene = SunCgSceneLoader.loadHouseFromJson("0004d52d1aeeb8ae6de39d6bd993e992", TEST_SUNCG_DATA_DIR)
 
+        agentNp = scene.agents[0]
+        agentNp.setPos(LVecBase3f(45, -42.5, 1.6))
+        agentNp.setHpr(45, 0, 0)
+
+        # Define a sound source
+        sourceSize = 0.25
+        modelId = 'source-0'
+        modelFilename = os.path.join(TEST_DATA_DIR, 'models', 'sphere.egg')
+        objectsNp = scene.scene.attachNewNode('objects')
+        objectsNp.setTag('acoustics-mode', 'source')
+        objectNp = objectsNp.attachNewNode('object-' + modelId)
+        model = loadModel(modelFilename)
+        model.setName('model-' + modelId)
+        model.setTransform(TransformState.makeScale(sourceSize))
+        model.reparentTo(objectNp)
+        objectNp.setPos(LVecBase3f(39, -40.5, 1.5))
+        
+        samplingRate = 16000.0
+        hrtf = CipicHRTF(os.path.join(TEST_DATA_DIR, 'hrtf', 'cipic_hrir.mat'), samplingRate)
+        acoustics = EvertAcoustics(scene, hrtf, samplingRate, maximumOrder=2, maxBufferLength=30.0)
+
+        # Attach sound to object
+        filename = os.path.join(TEST_DATA_DIR, 'audio', 'toilet.ogg')
+        sound = EvertAudioSound(filename)
+        acoustics.attachSoundToObject(sound, objectNp)
+        sound.setLoop(True)
+        sound.setLoopCount(1)
+        sound.play()
+        
+        for i, dt in enumerate([5.0, 20.0, 10.0]):
+        
+            acoustics.step(dt)
+            if i == 0:
+                self.assertTrue(sound.status() == AudioSound.PLAYING)
+            elif i > 1:
+                self.assertTrue(sound.status() == AudioSound.READY)
+            inbuf = acoustics.srcBuffers[sound]
+            outbuf = acoustics.outBuffers[agentNp.getName()]
+            
+            fig = plt.figure()
+            plt.subplot(121)
+            plt.plot(inbuf)
+            plt.subplot(122)
+            plt.plot(outbuf.T)
+            plt.show(block=False)
+            time.sleep(4.0)
+            plt.close(fig)
+
+    def testMultipleSources(self):
+        
+        scene = SunCgSceneLoader.loadHouseFromJson("0004d52d1aeeb8ae6de39d6bd993e992", TEST_SUNCG_DATA_DIR)
+
+        agentNp = scene.agents[0]
+        agentNp.setPos(LVecBase3f(45, -42.5, 1.6))
+        agentNp.setHpr(45, 0, 0)
+
+        # Define multiple sound sources
+        sources = []
+        for i, pos in enumerate([(39, -40.5, 1.5), (45.5, -42.5, 0.5)]):
+            sourceSize = 0.25
+            modelId = 'source-%d' % (i)
+            modelFilename = os.path.join(TEST_DATA_DIR, 'models', 'sphere.egg')
+            objectsNp = scene.scene.attachNewNode('objects')
+            objectsNp.setTag('acoustics-mode', 'source')
+            objectNp = objectsNp.attachNewNode('object-' + modelId)
+            model = loadModel(modelFilename)
+            model.setName('model-' + modelId)
+            model.setTransform(TransformState.makeScale(sourceSize))
+            model.reparentTo(objectNp)
+            objectNp.setPos(LVecBase3f(*pos))
+            sources.append(objectNp)
+        
+        samplingRate = 16000.0
+        hrtf = CipicHRTF(os.path.join(TEST_DATA_DIR, 'hrtf', 'cipic_hrir.mat'), samplingRate)
+        acoustics = EvertAcoustics(scene, hrtf, samplingRate, maximumOrder=2)
+
+        audioFilenames = ['toilet.ogg', 'radio.ogg']
+        for audioFilename, source in zip(audioFilenames, sources):
+            # Attach sound to object
+            filename = os.path.join(TEST_DATA_DIR, 'audio', audioFilename)
+            sound = EvertAudioSound(filename)
+            acoustics.attachSoundToObject(sound, source)
+            sound.setLoop(True)
+            sound.setLoopCount(1)
+            sound.play()
+        
+        for _ in range(20):
+            acoustics.step(dt=0.1)
+            obs = acoustics.getObservationsForAgent(agentNp.getName())
+            self.assertTrue('audio-buffer-right' in obs)
+            self.assertTrue('audio-buffer-left' in obs)
+            self.assertTrue(np.array_equal(obs['audio-buffer-right'].shape, obs['audio-buffer-left'].shape))
+
+    def testListen(self):
+        
+        scene = SunCgSceneLoader.loadHouseFromJson("0004d52d1aeeb8ae6de39d6bd993e992", TEST_SUNCG_DATA_DIR)
+
+        agentNp = scene.agents[0]
+        agentNp.setPos(LVecBase3f(45, -42.5, 1.6))
+        agentNp.setHpr(45, 0, 0)
+
+        # Define multiple sound sources
+        sources = []
+        for i, pos in enumerate([(39, -40.5, 1.5), (45.5, -42.5, 0.5)]):
+            sourceSize = 0.25
+            modelId = 'source-%d' % (i)
+            modelFilename = os.path.join(TEST_DATA_DIR, 'models', 'sphere.egg')
+            objectsNp = scene.scene.attachNewNode('objects')
+            objectsNp.setTag('acoustics-mode', 'source')
+            objectNp = objectsNp.attachNewNode('object-' + modelId)
+            model = loadModel(modelFilename)
+            model.setName('model-' + modelId)
+            model.setTransform(TransformState.makeScale(sourceSize))
+            model.reparentTo(objectNp)
+            objectNp.setPos(LVecBase3f(*pos))
+            sources.append(objectNp)
+        
+        samplingRate = 16000.0
+        hrtf = CipicHRTF(os.path.join(TEST_DATA_DIR, 'hrtf', 'cipic_hrir.mat'), samplingRate)
+        acoustics = EvertAcoustics(scene, hrtf, samplingRate, maximumOrder=2, maxBufferLength=30.0)
+
+        audioFilenames = ['toilet.ogg', 'radio.ogg']
+        sounds = []
+        for audioFilename, source in zip(audioFilenames, sources):
+            # Attach sound to object
+            filename = os.path.join(TEST_DATA_DIR, 'audio', audioFilename)
+            sound = EvertAudioSound(filename)
+            acoustics.attachSoundToObject(sound, source)
+            sound.setLoop(True)
+            sound.setLoopCount(1)
+            
+            sounds.append(sound)
+        
+        sounds[0].play()
+        acoustics.step(dt=5.0)
+        sounds[0].stop()
+        sounds[1].play()
+        acoustics.step(dt=5.0)
+        sounds[0].play()
+        sounds[1].play()
+        acoustics.step(dt=5.0)
+        
+        obs = acoustics.getObservationsForAgent(agentNp.getName())
+        data = np.array([obs['audio-buffer-left'],
+                         obs['audio-buffer-right']], dtype=np.float32).T
+        self.assertTrue(np.allclose(data.shape[0]/samplingRate, 15.0, atol=1e-3)) 
+        
+        #from scipy.io import wavfile
+        #wavfile.write('output.wav', samplingRate, data)
+
+        fig = plt.figure()
+        plt.plot(data)
+        plt.show(block=False)
+        time.sleep(1.0)
+        plt.close(fig)
+
+    def testAddAmbientSound(self):
+        
+        scene = SunCgSceneLoader.loadHouseFromJson("0004d52d1aeeb8ae6de39d6bd993e992", TEST_SUNCG_DATA_DIR)
+
+        agentNp = scene.agents[0]
+        agentNp.setPos(LVecBase3f(45, -42.5, 1.6))
+        agentNp.setHpr(45, 0, 0)
+
+        # Define a sound source
+        sourceSize = 0.25
+        modelId = 'source-0'
+        modelFilename = os.path.join(TEST_DATA_DIR, 'models', 'sphere.egg')
+        objectsNp = scene.scene.attachNewNode('objects')
+        objectsNp.setTag('acoustics-mode', 'source')
+        objectNp = objectsNp.attachNewNode('object-' + modelId)
+        model = loadModel(modelFilename)
+        model.setName('model-' + modelId)
+        model.setTransform(TransformState.makeScale(sourceSize))
+        model.reparentTo(objectNp)
+        objectNp.setPos(LVecBase3f(39, -40.5, 1.5))
+        
+        samplingRate = 16000.0
+        hrtf = CipicHRTF(os.path.join(TEST_DATA_DIR, 'hrtf', 'cipic_hrir.mat'), samplingRate)
+        acoustics = EvertAcoustics(scene, hrtf, samplingRate, maximumOrder=2, maxBufferLength=30.0)
+
+        # Attach sound to object
+        filename = os.path.join(TEST_DATA_DIR, 'audio', 'toilet.ogg')
+        sound = EvertAudioSound(filename)
+        acoustics.attachSoundToObject(sound, objectNp)
+        sound.setLoop(True)
+        sound.setLoopCount(1)
+            
+        # Add ambient sound
+        filename = os.path.join(TEST_DATA_DIR, 'audio', 'radio.ogg')
+        ambientSound = EvertAudioSound(filename)
+        ambientSound.setLoop(True)
+        ambientSound.setLoopCount(0)
+        ambientSound.setVolume(0.25)
+        acoustics.addAmbientSound(ambientSound)
+        
+        ambientSound.play()
+        acoustics.step(dt=5.0)
+        sound.play()
+        acoustics.step(dt=5.0)
+        
+        obs = acoustics.getObservationsForAgent(agentNp.getName())
+        data = np.array([obs['audio-buffer-left'],
+                         obs['audio-buffer-right']], dtype=np.float32).T
+        self.assertTrue(np.allclose(data.shape[0]/samplingRate, 10.0, atol=1e-3)) 
+        
+        #from scipy.io import wavfile
+        #wavfile.write('output.wav', samplingRate, data)
+        
+        fig = plt.figure()
+        plt.plot(data)
+        plt.show(block=False)
+        time.sleep(1.0)
+        plt.close(fig)
+
+class TestEvertAudioSound(unittest.TestCase):
+        
+    def testInit(self):
+        
+        filename = os.path.join(TEST_DATA_DIR, 'audio', 'toilet.ogg')
+        sound = EvertAudioSound(filename)
+        self.assertTrue(sound.data.ndim == 1)
+        self.assertTrue(sound.data.dtype == np.float)
+        self.assertTrue(sound.samplingRate == 16000.0)
+        self.assertTrue(np.allclose(sound.length(), 15.846, atol=1e-2))
+        
+        sound.resample(8000.0)
+        self.assertTrue(sound.data.ndim == 1)
+        self.assertTrue(sound.data.dtype == np.float)
+        self.assertTrue(np.allclose(sound.length(), 15.846, atol=1e-2))
+        
+from direct.task.TaskManagerGlobal import taskMgr
+        
+class TestAudioPlayer(unittest.TestCase):
+        
+    def testUpdate(self):
+        
+        scene = SunCgSceneLoader.loadHouseFromJson("0004d52d1aeeb8ae6de39d6bd993e992", TEST_SUNCG_DATA_DIR)
+
+        agentNp = scene.agents[0]
+        agentNp.setPos(LVecBase3f(45, -42.5, 1.6))
+        agentNp.setHpr(45, 0, 0)
+
+        samplingRate = 16000.0
+        hrtf = CipicHRTF(os.path.join(TEST_DATA_DIR, 'hrtf', 'cipic_hrir.mat'), samplingRate)
+        acoustics = EvertAcoustics(scene, hrtf, samplingRate, maximumOrder=2, maxBufferLength=30.0)
+
+        # Add ambient sound
+        filename = os.path.join(TEST_DATA_DIR, 'audio', 'radio.ogg')
+        ambientSound = EvertAudioSound(filename)
+        ambientSound.setLoop(True)
+        ambientSound.setLoopCount(0)
+        acoustics.addAmbientSound(ambientSound)
+        ambientSound.play()
+        
+        acoustics.step(0.0)
+        
+        player = AudioPlayer(acoustics)
+        for _ in range(10):
+            taskMgr.step()
+        
+class TestFunctions(unittest.TestCase):
+        
+    def testInterauralPolarToVerticalPolarCoordinates(self):
+        elevations = np.array([0.0, 90.0, 90.0, 90.0, 90.0])
+        azimuts = np.array([0.0, 0.0, 90.0, -90.0, 45.0])
+        
+        vertElevations, vertAzimuts = interauralPolarToVerticalPolarCoordinates(elevations, azimuts)
+        self.assertTrue(np.allclose(vertElevations, [0.0, 90.0, 0.0, 0.0, 45.0], atol=1e-6))
+        self.assertTrue(np.allclose(vertAzimuts, [0.0, 0.0, 90.0, -90.0, 90.0], atol=1e-6))
+        
+    def testVerticalPolarToInterauralPolarCoordinates(self):
+        elevations = np.array([0.0, 90.0, 0.0, 0.0, 45.0])
+        azimuts = np.array([0.0, 0.0, 90.0, -90.0, 90.0])
+        
+        vertElevations, vertAzimuts = verticalPolarToInterauralPolarCoordinates(elevations, azimuts)
+        self.assertTrue(np.allclose(vertElevations, [0.0, 90.0, 0.0, 0.0, 90.0], atol=1e-6))
+        self.assertTrue(np.allclose(vertAzimuts, [0.0, 0.0, 90.0, -90.0, 45.0], atol=1e-6))
+        
+    def testVerticalPolarToCipicCoordinates(self):
+        elevations = np.array([0.0, 90.0, 0.0, 0.0, 45.0, -180.0])
+        azimuts = np.array([0.0, 0.0, 90.0, -90.0, 90.0, 0.0])
+        
+        cipicElevations, cipicAzimuts = verticalPolarToCipicCoordinates(elevations, azimuts)
+        self.assertTrue(np.allclose(cipicElevations, [0.0, 90.0, 0.0, 0.0, 90.0, 180], atol=1e-6))
+        self.assertTrue(np.allclose(cipicAzimuts, [0.0, 0.0, 90.0, -90.0, 45.0, 0.0], atol=1e-6))
+        
+        
 if __name__ == '__main__':
     logging.basicConfig(level=logging.WARN)
     np.seterr(all='raise')
     unittest.main()
+    

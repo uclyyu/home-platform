@@ -255,23 +255,20 @@ class Panda3dRenderer(World):
     def getRgbImages(self, channelOrder="RGB"):
         images = dict()
         for name, tex in iteritems(self.rgbTextures):
+            
             # XXX: not sure about calling makeRamImage() before getting the image data, since it returns an empty image
             #      and overwrite any previously rendered image. We may just call it once when we create the texture.
-            data = tex.getRamImageAs(channelOrder)
             if not tex.mightHaveRamImage():
                 tex.makeRamImage()
-                data = tex.getRamImageAs(channelOrder)
-            try:
-                data_img = data.get_data()
-            except UnicodeDecodeError as _:
-                tex.makeRamImage()
-                data = tex.getRamImageAs(channelOrder)
-                data_img = data.get_data()
-
-            if (sys.version_info > (3, 0)):
-                image = np.fromstring(data_img, dtype=np.uint8)  # Must match Texture.TUnsignedByte
+            
+            if sys.version_info[0] < 3:
+                data = tex.getRamImageAs(channelOrder).getData()   # Python 2
             else:
-                image = np.frombuffer(data_img, dtype=np.uint8)  # Must match Texture.TUnsignedByte
+                # NOTE: see https://github.com/panda3d/panda3d/issues/173
+                data = bytes(memoryview(tex.getRamImageAs(channelOrder)))  # Python 3
+            
+            image = np.frombuffer(data, dtype=np.uint8)  # Must match Texture.TUnsignedByte
+                
             image.shape = (tex.getYSize(), tex.getXSize(), 3)
             image = np.flipud(image)
             images[name] = image
@@ -288,22 +285,21 @@ class Panda3dRenderer(World):
                 #      and overwrite any previously rendered image. We may just call it once when we create the texture.
                 if not tex.mightHaveRamImage():
                     tex.makeRamImage()
-                data = tex.getRamImage().get_data()
+                    
+                if sys.version_info[0] < 3:
+                    data = tex.getRamImage().getData()   # Python 2
+                else:
+                    # NOTE: see https://github.com/panda3d/panda3d/issues/173
+                    data = bytes(memoryview(tex.getRamImage()))  # Python 3
+                
                 nbBytesComponentFromData = len(data) / (tex.getYSize() * tex.getXSize())
                 if nbBytesComponentFromData == 4:
-                    if (sys.version_info > (3, 0)):
-                        depthImage = np.fromstring(data, dtype=np.float32)  # Must match Texture.TFloat
-                    else:
-                        depthImage = np.frombuffer(data, dtype=np.float32)  # Must match Texture.TFloat
+                    depthImage = np.frombuffer(data, dtype=np.float32)  # Must match Texture.TFloat
 
                 elif nbBytesComponentFromData == 2:
                     # NOTE: This can happen on some graphic hardware, where unsigned 16-bit data is stored
                     #       despite setting the texture component type to 32-bit floating point.
-                    if (sys.version_info > (3, 0)):
-                        depthImage = np.fromstring(data, dtype=np.uint16)  # Must match Texture.TFloat
-                    else:
-                        depthImage = np.frombuffer(data, dtype=np.uint16)  # Must match Texture.TFloat
-
+                    depthImage = np.frombuffer(data, dtype=np.uint16)  # Must match Texture.TFloat
                     depthImage = depthImage.astype(np.float32) / 65535
 
                 depthImage.shape = (tex.getYSize(), tex.getXSize())

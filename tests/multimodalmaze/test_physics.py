@@ -36,7 +36,8 @@ from home_platform.physics import Panda3dBulletPhysics
 
 from home_platform.suncg import SunCgSceneLoader, loadModel
 from home_platform.utils import Viewer
-from panda3d.core import LMatrix4f, LVector3f, TransformState, LVecBase3
+from panda3d.core import LMatrix4f, LVector3f, TransformState, LVecBase3,\
+    BitMask32
 from home_platform.core import Scene
 from home_platform.rendering import Panda3dRenderer
 
@@ -65,7 +66,7 @@ class TestPanda3dBulletPhysics(unittest.TestCase):
         assert os.path.exists(modelFilename)
         model = loadModel(modelFilename)
         model.setName('model-' + str(modelId))
-        model.hide()
+        model.hide(BitMask32.allOn())
 
         objectsNp = scene.scene.attachNewNode('objects')
         objNp = objectsNp.attachNewNode('object-' + str(modelId))
