@@ -18,8 +18,14 @@ Main requirements:
 
 To install dependencies on Ubuntu operating systems:
 ```
-sudo apt-get install python-pip python-dev build-essential libsndfile1
-sudo pip2 install --upgrade pip numpy scipy matplotlib panda3d pysoundfile resampy nose coverage Pillow
+sudo apt-get install python-pip python-tk python-dev build-essential libsndfile1 portaudio19-dev
+sudo pip2 install --upgrade pip numpy scipy matplotlib gym panda3d pysoundfile pyaudio resampy nose coverage Pillow
+```
+
+or, for Python 3:
+```
+sudo apt-get install python3-pip python3-tk python3-dev build-essential libsndfile1 portaudio19-dev
+sudo pip3 install --upgrade pip numpy scipy matplotlib gym panda3d pysoundfile pyaudio resampy nose coverage Pillow
 ```
 
 (Packages `nose` and `coverage` are for tests only and can be omitted)
