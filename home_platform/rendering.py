@@ -389,6 +389,10 @@ class Panda3dSemanticsRenderer(World):
     def __init__(self, scene, suncgDatasetRoot, size=(512, 512), mode='offscreen', zNear=0.1, zFar=1000.0, fov=40.0,
                  cameraTransform=None):
 
+        # Off-screen buffers are not supported in OSX
+        if sys.platform == 'darwin':
+            mode = 'onscreen'
+
         super(Panda3dSemanticsRenderer, self).__init__()
 
         self.__dict__.update(scene=scene, suncgDatasetRoot=suncgDatasetRoot, size=size, mode=mode, zNear=zNear,
