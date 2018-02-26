@@ -19,7 +19,7 @@
 from __future__ import print_function
 
 from optparse import OptionParser
-import sys, os
+import sys, os, math
 
 from panda3d.core import Point2D, Point3D, Vec3D, Vec4, GlobPattern, Filename,\
     CSZupRight, CSZupLeft, CSYupRight, CSYupLeft
@@ -360,7 +360,7 @@ class ObjFile:
         # capture the current metadata with vertices
         vdata = floats(v)
         mdata = (self.currentobject, self.currentgroup, self.currentmaterial)
-        vinfo = (vdata, mdata)
+        vinfo = ([0 if math.isnan(vert) else vert for vert in vdata], mdata)
         self.points.append(vinfo)
         return self
 
@@ -603,6 +603,7 @@ def main(argv=None):
 
 if __name__ == "__main__":
     sys.exit(main())
+
 
 
 
