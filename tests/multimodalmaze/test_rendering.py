@@ -144,7 +144,7 @@ class TestPanda3dSemanticsRenderer(unittest.TestCase):
         colors = np.stack(MODEL_CATEGORY_COLOR_MAPPING.values())
         for color in image.reshape((-1, image.shape[-1])):
             alpha = color[-1]
-            if alpha == 1.0:
+            if alpha == 255:
                 self.assertTrue(np.min(np.sum(np.abs(colors - color[:3]), axis=1)) < eps)
 
         fig = plt.figure(figsize=(8, 8))
