@@ -88,7 +88,7 @@ class Controller(ShowBase):
         # key controls
         self.forward = False
         self.backward = False
-        self.fast = 1.0
+        self.fast = 2.0
         self.left = False
         self.right = False
 
