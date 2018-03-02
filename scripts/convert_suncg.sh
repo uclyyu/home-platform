@@ -29,8 +29,8 @@ for obj in ${objects[*]}; do
 	OUTPUT_EGG_FILE="${obj%.obj}.egg"
 	OUTPUT_BAM_FILE="${obj%.obj}.bam"
 
-	if [ -f $OUTPUT_EGG_FILE ]; then
-		echo "Output EGG file ${OUTPUT_EGG_FILE} already found"
+	if [ -f $OUTPUT_BAM_FILE ]; then
+		echo "Output BAM file ${OUTPUT_BAM_FILE} already found"
 		echo "Skipping conversion for OBJ file ${INPUT_OBJ_FILE}"
 		continue
 	fi
@@ -47,7 +47,7 @@ for obj in ${objects[*]}; do
         egg2bam -ps rel -o ${OUTPUT_BAM_FILE} ${OUTPUT_EGG_FILE}
         if ! [ -f $OUTPUT_BAM_FILE ]; then
 		echo "Could not find output file ${OUTPUT_BAM_FILE}. An error probably occured during conversion."
-            	((has_err=1))	
+        ((has_err=1))	
 		((++num_bam_errors))
         fi
     fi
