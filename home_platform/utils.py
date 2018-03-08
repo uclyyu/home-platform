@@ -406,6 +406,9 @@ class Viewer(ShowBase):
 
         return task.cont
 
+    def capture_video(self, duration=400, fps=24, **kwargs):
+        self.movie(duration=duration, fps=fps, **kwargs)
+
     def step(self):
         self.taskMgr.step()
 
