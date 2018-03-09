@@ -146,7 +146,7 @@ class Panda3dRenderer(World):
             else:
                 raise Exception('Unsupported rendering mode: %s' % (self.mode))
 
-            buf = self.graphicsEngine.makeOutput(self.pipe, 'RGB buffer', 0, fbprops,
+            buf = self.graphicsEngine.makeOutput(self.pipe, 'RGB buffer Rendering', 0, fbprops,
                                                  winprops, flags)
             if buf is None:
                 raise Exception('Unable to create RGB buffer')
@@ -489,7 +489,6 @@ class Panda3dSemanticsRenderer(World):
                 elif modelId.endswith('w'):
                     catName = 'wall'
             else:
-                pass
                 catName = self.categoryMapping.getFineGrainedCategoryForModelId(modelId)
             color = MODEL_CATEGORY_COLOR_MAPPING[catName]
 
@@ -539,7 +538,7 @@ class Panda3dSemanticsRenderer(World):
             else:
                 raise Exception('Unsupported rendering mode: %s' % (self.mode))
 
-            buf = self.graphicsEngine.makeOutput(self.pipe, 'RGB buffer', 0, fbprops,
+            buf = self.graphicsEngine.makeOutput(self.pipe, 'RGB buffer Semantics', 0, fbprops,
                                                  winprops, flags)
             if buf is None:
                 raise Exception('Unable to create RGB buffer')
