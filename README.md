@@ -127,37 +127,3 @@ To do so, just cd into the scripts folder in this repository and run the convers
     # if you installed the dataset via environmental vairable:
     ./convert_suncg.sh $SUNCG_DATA_DIR/ # the trailing slash might be important
     
-Now sit back, have a tea, a dinner, maybe a little holiday somewhere warm - this will take a while.
-
-#### 2 Loading a house
-
-TODO 
-
-(In the meantime please have a look at our tests in the `tests` directory.
-There we cover pretty much all aspects of the library.)
-
-#### 3 Rendering a house
-
-TODO 
-
-(In the meantime please have a look at our tests in the `tests` directory.
-There we cover pretty much all aspects of the library.)
-
-#### 4 Adding physics to a house
-
-TODO 
-
-(... you get the idea.)
-
-#### 5 Adding acoustics to a hosue
-
-TODO 
-
-(... you get the idea.)
-
-#### 6 Getting started with reinforcement learning (RL)
-
-TODO 
-
-(... you get the idea.)
-
