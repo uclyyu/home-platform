@@ -191,7 +191,10 @@ class Panda3dBulletPhysics(World):
             acousticsNp = model.getParent().find('**/acoustics')
             if not acousticsNp.isEmpty():
                 acousticsNp.reparentTo(physicsNp)
-    
+            semanticsNp = model.getParent().find('**/semantics')
+            if not semanticsNp.isEmpty():
+                semanticsNp.reparentTo(physicsNp)
+                
             # NOTE: we need this to update the transform state of the internal bullet node
             physicsNp.node().setTransformDirty()
     
@@ -307,6 +310,9 @@ class Panda3dBulletPhysics(World):
                 acousticsNp = model.getParent().find('**/acoustics')
                 if not acousticsNp.isEmpty():
                     acousticsNp.reparentTo(physicsNp)
+                semanticsNp = model.getParent().find('**/semantics')
+                if not semanticsNp.isEmpty():
+                    semanticsNp.reparentTo(physicsNp)
                 
                 # NOTE: we need this to update the transform state of the internal bullet node
                 node.setTransformDirty()

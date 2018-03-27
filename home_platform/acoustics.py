@@ -788,7 +788,7 @@ class EvertAcoustics(World):
     rayColors = [
         (1.0, 1.0, 0.0, 0.2),  # yellow
         (0.0, 0.0, 1.0, 0.2),  # blue
-        (0.0, 0.0, 1.0, 0.2),  # green
+        (0.0, 1.0, 0.0, 0.2),  # green
         (0.0, 1.0, 1.0, 0.2),  # cyan
         (1.0, 0.0, 1.0, 0.2),  # magenta
         (1.0, 0.0, 0.0, 0.2),  # red
@@ -850,6 +850,26 @@ class EvertAcoustics(World):
 
         self.lastTaskTime = 0.0
         #taskMgr.add(self.update, 'acoustics', sort=0)
+
+    def showRoomLayout(self, showCeilings=True, showWalls=True, showFloors=True):
+
+        for np in self.scene.scene.findAllMatches('**/layouts/**/acoustics/*c'):
+            if showCeilings:
+                np.show(self.cameraMask)
+            else:
+                np.hide(BitMask32.allOn())
+    
+        for np in self.scene.scene.findAllMatches('**/layouts/**/acoustics/*w'):
+            if showWalls:
+                np.show(self.cameraMask)
+            else:
+                np.hide(BitMask32.allOn())
+            
+        for np in self.scene.scene.findAllMatches('**/layouts/**/acoustics/*f'):
+            if showFloors:
+                np.show(self.cameraMask)
+            else:
+                np.hide(BitMask32.allOn())
 
     def destroy(self):
         # Nothing to do
@@ -1140,12 +1160,12 @@ class EvertAcoustics(World):
         # Get the azimut in X-Y plane
         srcDirVecXY = LVector3f(srcDirVec.x, srcDirVec.y, 0.0).normalized()
         headDirVecXY = LVector3f(headDirVec.x, headDirVec.y, 0.0).normalized()
-        azimut = srcDirVecXY.signedAngleRad(headDirVecXY, headDirVecXY)
+        azimut = srcDirVecXY.signedAngleRad(headDirVecXY, LVector3f(0.0, 0.0, 1.0))
 
         # Get the elevation in Y-Z plane
         srcDirVecYZ = LVector3f(0.0, srcDirVec.y, srcDirVec.z).normalized()
         headDirVecYZ = LVector3f(0.0, headDirVec.y, headDirVec.z).normalized()
-        elevation = srcDirVecYZ.signedAngleRad(headDirVecYZ, headDirVecYZ)
+        elevation = srcDirVecYZ.signedAngleRad(headDirVecYZ, LVector3f(-1.0, 0.0, 0.0))
 
         return azimut, elevation
 

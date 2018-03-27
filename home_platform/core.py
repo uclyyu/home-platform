@@ -37,16 +37,18 @@ class Scene(object):
         self.scene = NodePath('scene')
         agents = self.scene.attachNewNode('agents')
         self.agents = [agents.attachNewNode('agent-0'),]
+        self.agents[0].setTag('agent-id', 'agent-0')
+        
         self.worlds = dict()
 
     def getAllHouses(self):
-        return self.scene.findAllMatches('**/house*')
+        return self.scene.findAllMatches('**/house-*')
 
     def getAllRooms(self):
-        return self.scene.findAllMatches('**/room*')
+        return self.scene.findAllMatches('**/room-*')
 
     def getAllObjects(self):
-        return self.scene.findAllMatches('**/object*')
+        return self.scene.findAllMatches('**/object-*')
 
     def getAllAgents(self):
         return self.scene.findAllMatches('**/agents*')

@@ -44,7 +44,8 @@ logger = logging.getLogger(__name__)
 
 def loadModel(modelPath):
     loader = Loader.getGlobalPtr()
-    loaderOptions = LoaderOptions()
+    # NOTE: disable disk and RAM caching to avoid filling memory when loading multiple scenes
+    loaderOptions = LoaderOptions(LoaderOptions.LF_no_cache)
     node = loader.loadSync(Filename(modelPath), loaderOptions)
     if node is not None:
         nodePath = NodePath(node)
@@ -376,13 +377,16 @@ class SunCgSceneLoader(object):
             levelNp = houseNp.attachNewNode('level-' + str(levelId))
             levelNp.setTag('level-id', str(levelId))
             
+            levelObjectsNp = levelNp.attachNewNode('objects')
+            
             roomNpByNodeIndex = {}
             for nodeIndex, node in enumerate(level['nodes']):
                 if not node['valid'] == 1: continue
                     
-                modelId = str(node['modelId'])
-                    
-                if node['type'] == 'Room':
+                if node['type'] == 'Box':
+                    pass
+                elif node['type'] == 'Room':
+                    modelId = str(node['modelId'])
                     logger.debug('Loading Room %s to scene' % (modelId))
                     
                     # Create new nodes for room instance
@@ -405,10 +409,15 @@ class SunCgSceneLoader(object):
                         # NOTE: loading the BAM format is faster and more efficient
                         # Convert extension from OBJ + MTL to BAM format
                         f, _ = os.path.splitext(roomObjFilename)
-                        modelFilename = f + ".bam"
-                        if not os.path.exists(modelFilename):
-                            raise Exception('The SUNCG dataset object models need to be convert to Panda3D EGG format!')
-                        
+                        bamModelFilename = f + ".bam"
+                        eggModelFilename = f + ".egg"
+                        if os.path.exists(bamModelFilename):
+                            modelFilename = bamModelFilename
+                        elif os.path.exists(eggModelFilename):
+                            modelFilename = eggModelFilename
+                        else:
+                            raise Exception('The SUNCG dataset object models need to be convert to Panda3D EGG or BAM format!')
+
                         # Create new node for object instance
                         instanceId = str(modelId) + '-0'
                         modelId = os.path.splitext(os.path.basename(roomObjFilename))[0]
@@ -427,7 +436,7 @@ class SunCgSceneLoader(object):
                             roomNpByNodeIndex[childNodeIndex] = roomObjectsNp
                     
                 elif node['type'] == 'Object':
-                    
+                    modelId = str(node['modelId'])
                     logger.debug('Loading Object %s to scene' % (modelId))
                     
                     # Instance identification
@@ -447,9 +456,15 @@ class SunCgSceneLoader(object):
                     objFilename = os.path.join(datasetRoot, 'object', node['modelId'], node['modelId'] + '.obj')
                     assert os.path.exists(objFilename)
                     f, _ = os.path.splitext(objFilename)
-                    modelFilename = f + ".bam"
-                    if not os.path.exists(modelFilename):
-                        raise Exception('The SUNCG dataset object models need to be convert to Panda3D BAM format!')
+                    
+                    bamModelFilename = f + ".bam"
+                    eggModelFilename = f + ".egg"
+                    if os.path.exists(bamModelFilename):
+                        modelFilename = bamModelFilename
+                    elif os.path.exists(eggModelFilename):
+                        modelFilename = eggModelFilename
+                    else:
+                        raise Exception('The SUNCG dataset object models need to be convert to Panda3D EGG or BAM format!')
                     
                     model = loadModel(modelFilename)
                     model.setName('model-' + os.path.basename(f))
@@ -486,14 +501,14 @@ class SunCgSceneLoader(object):
                     if nodeIndex in roomNpByNodeIndex:
                         objectNp.reparentTo(roomNpByNodeIndex[nodeIndex])
                     else:
-                        objectNp.reparentTo(levelNp)
+                        objectNp.reparentTo(levelObjectsNp)
                         
                     # Validation
                     assert np.allclose(mat4ToNumpyArray(model.getNetTransform().getMat()),
                                        mat4ToNumpyArray(transform.getMat()), atol=1e-6)
     
                 elif node['type'] == 'Ground':
-                    
+                    modelId = str(node['modelId'])
                     logger.debug('Loading Ground %s to scene' % (modelId))
                     
                     # Create new nodes for ground instance
@@ -510,9 +525,14 @@ class SunCgSceneLoader(object):
                         # NOTE: loading the BAM format is faster and more efficient
                         # Convert extension from OBJ + MTL to BAM format
                         f, _ = os.path.splitext(groundObjFilename)
-                        modelFilename = f + ".bam"
-                        if not os.path.exists(modelFilename):
-                            raise Exception('The SUNCG dataset object models need to be convert to Panda3D BAM format!')
+                        bamModelFilename = f + ".bam"
+                        eggModelFilename = f + ".egg"
+                        if os.path.exists(bamModelFilename):
+                            modelFilename = bamModelFilename
+                        elif os.path.exists(eggModelFilename):
+                            modelFilename = eggModelFilename
+                        else:
+                            raise Exception('The SUNCG dataset object models need to be convert to Panda3D EGG or BAM format!')
                 
                         instanceId = str(modelId) + '-0'
                         modelId = os.path.splitext(os.path.basename(groundObjFilename))[0]
@@ -537,15 +557,20 @@ class SunCgSceneLoader(object):
         for room in scene.scene.findAllMatches('**/room*'):
          
             # Calculate the center of this room
-            minBounds, maxBounds = room.getTightBounds()
-            centerPos = minBounds + (maxBounds - minBounds) / 2.0
-              
-            # Add offset transform to room node
-            room.setTransform(TransformState.makePos(centerPos))
-              
-            # Add recentering transform to all children nodes
-            for childNp in room.getChildren():
-                childNp.setTransform(TransformState.makePos(-centerPos))
+            bounds = room.getTightBounds()
+            if bounds is not None:
+                minBounds, maxBounds = room.getTightBounds()
+                centerPos = minBounds + (maxBounds - minBounds) / 2.0
+                  
+                # Add offset transform to room node
+                room.setTransform(TransformState.makePos(centerPos))
+                  
+                # Add recentering transform to all children nodes
+                for childNp in room.getChildren():
+                    childNp.setTransform(TransformState.makePos(-centerPos))
+            else:
+                # This usually means the room has no layout or objects
+                pass
          
         # Recenter objects in grounds
         for ground in scene.scene.findAllMatches('**/ground*'):

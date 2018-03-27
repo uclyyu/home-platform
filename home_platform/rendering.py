@@ -269,7 +269,7 @@ class Panda3dRenderer(World):
             
             image = np.frombuffer(data, dtype=np.uint8)  # Must match Texture.TUnsignedByte
                 
-            image.shape = (tex.getYSize(), tex.getXSize(), 3)
+            image.shape = (tex.getYSize(), tex.getXSize(), len(channelOrder))
             image = np.flipud(image)
             images[name] = image
 
@@ -425,6 +425,11 @@ class Panda3dSemanticsRenderer(World):
                 camera.setTransform(cameraTransform)
             camera.node().setPreserveTransform(ModelNode.PTLocal)
             self.cameras.append(camera)
+            
+            # Reparent node below the existing physic node (if any)
+            physicsNp = agentNp.find('**/physics')
+            if not physicsNp.isEmpty():
+                camera.reparentTo(physicsNp)
 
         self.rgbBuffers = dict()
         self.rgbTextures = dict()
@@ -557,9 +562,8 @@ class Panda3dSemanticsRenderer(World):
             buf.addRenderTexture(tex, GraphicsOutput.RTMCopyRam, GraphicsOutput.RTPColor)
             # XXX: should use tex.setMatchFramebufferFormat(True)?
 
-            agent = camera.getParent()
-            self.rgbBuffers[agent.getName()] = buf
-            self.rgbTextures[agent.getName()] = tex
+            self.rgbBuffers[camera.getNetTag('agent-id')] = buf
+            self.rgbTextures[camera.getNetTag('agent-id')] = tex
 
     def showRoomLayout(self, showCeilings=True, showWalls=True, showFloors=True):
 

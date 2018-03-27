@@ -56,7 +56,7 @@ class Controller(ShowBase):
         
         self.__dict__.update(scene=scene, size=size, fov=fov,
                              zNear=zNear, zFar=zFar, shadowing=shadowing, showPosition=showPosition,
-                             cameraTransform=cameraTransform)
+                             cameraTransform=cameraTransform, cameraMask=cameraMask)
 
         # Find agent and reparent camera to it
         self.agent = self.scene.scene.find('**/agents/agent*/+BulletRigidBodyNode')
@@ -81,8 +81,8 @@ class Controller(ShowBase):
         self.disableMouse()
 
         self.time = 0
-        self.centX = self.win.getProperties().getXSize() / 2
-        self.centY = self.win.getProperties().getYSize() / 2
+        self.centX = wp.getXSize() / 2
+        self.centY = wp.getYSize() / 2
         self.win.movePointer(0, int(self.centX), int(self.centY))
 
         # key controls
@@ -99,6 +99,8 @@ class Controller(ShowBase):
 
         # Reparent the scene to render.
         self.scene.scene.reparentTo(self.render)
+
+        self.render.setAntialias(AntialiasAttrib.MAuto)
 
         # Task
         self.globalClock = ClockObject.getGlobalClock()

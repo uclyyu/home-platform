@@ -565,7 +565,7 @@ def main(argv=None):
                 print("WARNING", infile, "does not look like a valid obj file")
                 continue
             obj = ObjFile(infile)
-            egg = obj.toEgg()
+            egg = obj.toEgg(verbose=False)
             f, e = os.path.splitext(infile)
             outfile = f + ".egg"
             
