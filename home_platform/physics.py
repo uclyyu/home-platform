@@ -262,7 +262,8 @@ class Panda3dBulletPhysics(World):
         for model in self.scene.scene.findAllMatches('**/objects/object*/model*'):
             modelId = model.getParent().getTag('model-id')
             
-            # XXX: we could create BulletGhostNode instance for non-collidable objects, but we would need to filter out the collisions later on
+            # XXX: we could create BulletGhostNode instance for non-collidable objects,
+            #  but we would need to filter out the collisions later on
             if not modelId in self.openedDoorModelIds:
                 
                 shape, transform = getCollisionShapeFromModel(model, self.objectMode, defaultCentered=True)
@@ -357,7 +358,7 @@ class Panda3dBulletPhysics(World):
                 
                 # Check if the root node is part of that manifold, by checking positions
                 # TODO: there is surely a better way to compare the two nodes here
-                #if (manifold.getNode0().getTransform().getPos() == root.getNetTransform().getPos()):
+                # if (manifold.getNode0().getTransform().getPos() == root.getNetTransform().getPos()):
                 if manifold.getNode0().getTag('model-id') == root.getTag('model-id'):
                     
                     # Calculate the to
@@ -386,14 +387,16 @@ class Panda3dBulletPhysics(World):
         for nodePath in self.scene.scene.findAllMatches('**/object*/+BulletRigidBodyNode'):
             node = nodePath.node()
 
-            #NOTE: the bounding sphere doesn't seem to take into account the transform, so apply it manually (translation only)
+            # NOTE: the bounding sphere doesn't seem to take into account the transform,
+            # so apply it manually (translation only)
             bsphere = node.getShapeBounds()
             center = nodePath.getNetTransform().getPos()
             bounds.extend([center + bsphere.getMin(), center + bsphere.getMax()])
                 
         minBounds, maxBounds = np.min(bounds, axis=0), np.max(bounds, axis=0)
         
-        # Using the X and Y dimensions of the bounding box, discretize the 2D plan into a uniform grid with given precision
+        # Using the X and Y dimensions of the bounding box,
+        # discretize the 2D plan into a uniform grid with given precision
         X = np.arange(minBounds[0], maxBounds[0], step=precision)
         Y = np.arange(minBounds[1], maxBounds[1], step=precision)
         nbTotalCells = len(X) * len(Y)
@@ -402,7 +405,8 @@ class Panda3dBulletPhysics(World):
         # XXX: the simulation needs to be run a little before moving the agent, not sure why
         self.bulletWorld.doPhysics(0.1)
       
-        # Sweep the position of the agent across the grid, checking if collision/contacts occurs with objects or walls in the scene.
+        # Sweep the position of the agent across the grid,
+        # checking if collision/contacts occurs with objects or walls in the scene.
         occupancyMap = np.zeros((len(X), len(Y)))
         occupancyMapCoord = np.zeros((len(X), len(Y), 2))
         n = 0
