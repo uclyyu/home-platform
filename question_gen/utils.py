@@ -110,7 +110,6 @@ def generate_metadata_from_instances(scene, instances_found):
             metadata['scenes'][0]['objects'].append({k: v for k, v in props.iteritems() if k in keys})
 
     metadata['scenes'][0]['relationships'] = compute_all_relationships(objects_seen)
-    print metadata
     return metadata
 
 
