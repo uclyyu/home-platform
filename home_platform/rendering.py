@@ -387,7 +387,7 @@ class Panda3dRenderer(World):
 
 class Panda3dSemanticsRenderer(World):
     def __init__(self, scene, suncgDatasetRoot, size=(512, 512), mode='offscreen', zNear=0.1, zFar=1000.0, fov=40.0,
-                 cameraTransform=None):
+                 cameraTransform=None, segment_by_instance=False):
 
         # Off-screen buffers are not supported in OSX
         if sys.platform == 'darwin':
@@ -410,6 +410,14 @@ class Panda3dSemanticsRenderer(World):
         self.graphicsEngine = GraphicsEngine.getGlobalPtr()
         self.loader = Loader.getGlobalPtr()
         self.graphicsEngine.setDefaultLoader(self.loader)
+
+        self.instance_color_mapping = {
+            'ceiling': [153, 204, 204],
+            'floor': [51, 51, 204],
+            'wall': [102, 153, 255]
+        }
+
+        self.segment_by_instance = segment_by_instance
 
         self._initModels()
 
@@ -486,6 +494,11 @@ class Panda3dSemanticsRenderer(World):
 
             # Get semantic-related color of model
             modelId = model.getNetTag('model-id')
+
+            if self.segment_by_instance:
+                instance_id = objectNp.getTag('instance-id')
+                instance_color = None
+
             if 'fr_' in modelId:
                 if modelId.endswith('c'):
                     catName = 'ceiling'
@@ -493,9 +506,20 @@ class Panda3dSemanticsRenderer(World):
                     catName = 'floor'
                 elif modelId.endswith('w'):
                     catName = 'wall'
+
+                if self.segment_by_instance:
+                    instance_color = self.instance_color_mapping[catName]
+
             else:
                 catName = self.categoryMapping.getFineGrainedCategoryForModelId(modelId)
+
             color = MODEL_CATEGORY_COLOR_MAPPING[catName]
+
+            if self.segment_by_instance:
+                if not instance_color:
+                    instance_color = list(np.random.choice(range(256), size=3))
+                self.instance_color_mapping[instance_id] = instance_color
+                color = instance_color
 
             # Clear all GeomNode render attributes and set a specified flat color
             for nodePath in model.findAllMatches('**/+GeomNode'):
@@ -503,6 +527,8 @@ class Panda3dSemanticsRenderer(World):
                 for n in range(geomNode.getNumGeoms()):
                     geomNode.setGeomState(n, RenderState.make(
                         ColorAttrib.makeFlat(LColor(color[0] / 255.0, color[1] / 255.0, color[2] / 255.0, 1.0)), 1))
+
+            self.color_instance_mapping = {tuple(v): k for k, v in self.instance_color_mapping.iteritems()}
 
             # Disable lights for this model
             model.setLightOff(1)
