@@ -287,6 +287,7 @@ class Viewer(ShowBase):
 
         self._addDefaultLighting()
         self._setupEvents()
+        self.stop = False
 
     def _setupEvents(self):
 
@@ -305,6 +306,7 @@ class Viewer(ShowBase):
 
         # Set up the key input
         self.accept('escape', sys.exit)
+        self.accept('0', setattr, [self, "stop", True])
         self.accept("w", setattr, [self, "forward", True])
         self.accept("shift-w", setattr, [self, "forward", True])
         self.accept("w-up", setattr, [self, "forward", False])
@@ -405,6 +407,10 @@ class Viewer(ShowBase):
         # Simulate acoustics
         if 'acoustics' in self.scene.worlds:
             self.scene.worlds['acoustics'].step(dt)
+
+        # Simulate semantics
+        # if 'render-semantics' in self.scene.worlds:
+        #     self.scene.worlds['render-semantics'].step(dt)
 
         return task.cont
 
