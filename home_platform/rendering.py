@@ -54,10 +54,6 @@ class Panda3dRenderer(World):
     def __init__(self, scene, size=(512, 512), shadowing=False, mode='offscreen', zNear=0.1, zFar=1000.0, fov=40.0,
                  depth=True, modelLightsInfo=None, cameraTransform=None):
 
-        # Off-screen buffers are not supported in OSX
-        if sys.platform == 'darwin':
-            mode = 'onscreen'
-
         super(Panda3dRenderer, self).__init__()
 
         self.__dict__.update(scene=scene, size=size, mode=mode, zNear=zNear, zFar=zFar, fov=fov,
@@ -146,7 +142,7 @@ class Panda3dRenderer(World):
             else:
                 raise Exception('Unsupported rendering mode: %s' % (self.mode))
 
-            buf = self.graphicsEngine.makeOutput(self.pipe, 'RGB buffer Rendering', 0, fbprops,
+            buf = self.graphicsEngine.makeOutput(self.pipe, 'RGB-buffer-Rendering', 0, fbprops,
                                                  winprops, flags)
             if buf is None:
                 raise Exception('Unable to create RGB buffer')
@@ -389,10 +385,6 @@ class Panda3dSemanticsRenderer(World):
     def __init__(self, scene, suncgDatasetRoot, size=(512, 512), mode='offscreen', zNear=0.1, zFar=1000.0, fov=40.0,
                  cameraTransform=None, segment_by_instance=False):
 
-        # Off-screen buffers are not supported in OSX
-        if sys.platform == 'darwin':
-            mode = 'onscreen'
-
         super(Panda3dSemanticsRenderer, self).__init__()
 
         self.__dict__.update(scene=scene, suncgDatasetRoot=suncgDatasetRoot, size=size, mode=mode, zNear=zNear,
@@ -569,7 +561,7 @@ class Panda3dSemanticsRenderer(World):
             else:
                 raise Exception('Unsupported rendering mode: %s' % (self.mode))
 
-            buf = self.graphicsEngine.makeOutput(self.pipe, 'RGB buffer Semantics', 0, fbprops,
+            buf = self.graphicsEngine.makeOutput(self.pipe, 'RGB-buffer-Semantics', 0, fbprops,
                                                  winprops, flags)
             if buf is None:
                 raise Exception('Unable to create RGB buffer')
